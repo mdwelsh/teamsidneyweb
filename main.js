@@ -34,23 +34,15 @@ $('#button').click(function() {
 
 function login() {
   firebase.auth().signInWithPopup(provider).then(function(result) {
-    $('#login').hide();
-    $('#logout').show();
   }).catch(function(error) {
     $('#userinfo').text('Sorry, could not log you in: ' + error.message);
-    $('#login').show();
-    $('#logout').hide();
   });
 }
 
 function logout() {
   firebase.auth().signOut().then(function() {
-    $('#login').show();
-    $('#logout').hide();
   }, function(error) {
     $('#userinfo').text('Sorry, could not log you out: ' + error.message);
-    $('#login').hide();
-    $('#logout').show();
   });
 }
 
@@ -59,8 +51,12 @@ firebase.auth().onAuthStateChanged(function(user) {
     $('#userinfo').css('color', 'black');
     $('#userinfo').css('text-decoration', 'none');
     $('#userinfo').text('Hi, ' + user.displayName + '!');
+    $('#login').hide();
+    $('#logout').show();
   } else {
     $('#userinfo').text('No user yet');
+    $('#login').show();
+    $('#logout').hide();
   }
 });
 
