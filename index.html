@@ -1,10 +1,31 @@
+<!doctype html>
 <html>
 <head>
+
+<!-- jQuery -->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/3.2.1/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyABCaBBY04zpvIl1efmOPrKwNtPkgTXfqs",
+    authDomain: "team-sidney.firebaseapp.com",
+    databaseURL: "https://team-sidney.firebaseio.com",
+    storageBucket: "team-sidney.appspot.com",
+  };
+  firebase.initializeApp(config);
+</script>
 </head>
 <body>
 <p>
 <img src="teamsidney.jpg"/>
 
-<p>
+<div id="button"></div>
+
+<div id="current"></div>
+
+<script src="main.js"></script>
 </body>
 </html>
