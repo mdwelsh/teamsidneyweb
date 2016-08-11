@@ -29,6 +29,9 @@ $('#button').click(function() {
   count++;
   firebase.database().ref('stats').set({
     count: count
+  })
+  .catch(function(error) {
+    $('#button').text('You must sign in first!');
   });
 });
 
