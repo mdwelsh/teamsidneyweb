@@ -1,5 +1,55 @@
 // Team Sidney
 
+var provider = new firebase.auth.GoogleAuthProvider();
+setup();
+
+// Set up initial UI elements.
+function setup() {
+  doLogo();
+  if (firebase.auth().currentUser == null) {
+    // Not logged in yet.
+    showLoginButton();
+  } else {
+    showFullUI();
+  }
+}
+
+function showLoginButton() {
+  console.log("Show login button called");
+  var login = $('#login');
+
+  $('<button/>').text('Login').appendTo(login).button().click(doLogin);
+}
+
+function doLogin() {
+  console.log("doLogin called");
+  firebase.auth().signInWithPopup(provider).then(function(result) {
+  }).catch(function(error) {
+    showError('Sorry, could not log you in: ' + error.message);
+  });
+}
+
+function showFullUI() {
+  console.log("Show full UI called");
+  $('#login').text("The full UI should be here");
+}
+
+// Draw the logo.
+function doLogo() {
+  drawLogo(document.getElementById("logo"));
+}
+
+function clearError() {
+  $('#error').hide();
+}
+
+function showError(msg) {
+  $('#error').text(msg);
+  $('#error').show();
+}
+
+/*
+
 var count = 0;
 
 $('#login').css('color', 'blue');
@@ -17,7 +67,7 @@ $('#userinfo').text('No user yet');
 $('#button').text('Click me');
 $('#current').text('No value yet');
 
-var provider = new firebase.auth.GoogleAuthProvider();
+
 
 var countRef = firebase.database().ref('stats/count');
 countRef.on('value', function(snapshot) {
@@ -35,12 +85,6 @@ $('#button').click(function() {
   });
 });
 
-function login() {
-  firebase.auth().signInWithPopup(provider).then(function(result) {
-  }).catch(function(error) {
-    $('#userinfo').text('Sorry, could not log you in: ' + error.message);
-  });
-}
 
 function logout() {
   firebase.auth().signOut().then(function() {
@@ -63,3 +107,4 @@ firebase.auth().onAuthStateChanged(function(user) {
   }
 });
 
+*/

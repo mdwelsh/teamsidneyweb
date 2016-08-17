@@ -1,0 +1,11 @@
+body {
+    background-color: #cfcfcd;
+    font-size: 20px;
+}
+
+.errormsg {
+  color: red;
+  font-family: Varela Round;
+  font-size: 12px;
+}
+

@@ -1,9 +1,21 @@
 <!doctype html>
 <html>
 <head>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+
+
+<!-- Fonts -->
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+<link href='https://fonts.googleapis.com/css?family=Varela+Round' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Vast+Shadow' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Baloo+Da' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Amatic+SC:400,700' rel='stylesheet' type='text/css'>
 
 <!-- jQuery -->
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+
+<!-- jQuery UI -->
+<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/3.2.1/firebase.js"></script>
@@ -17,16 +29,21 @@
   };
   firebase.initializeApp(config);
 </script>
-</head>
-<body>
-<p>
-<img src="teamsidney.jpg"/>
 
-<div id="userinfo"></div>
+<!-- Logo -->
+<script src="logo.js"></script>
+
+<!-- Main CSS -->
+<link rel="stylesheet" href="main.css" type="text/css">
+
+</style>
+
+</head>
+
+<body>
+<div id="logo"></div>
 <div id="login"></div>
-<div id="logout"></div>
-<div id="button"></div>
-<div id="current"></div>
+<div id="error" class="errormsg" style="hidden"></div>
 
 <script src="main.js"></script>
 </body>
