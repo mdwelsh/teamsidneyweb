@@ -1,7 +1,8 @@
 /* https://coolors.co/d7dedc-cfcfcd-9a879d-7a3b69-563440 */
 
 body {
-  background-color: #d7dfdc;
+/*  background-color: #d7dfdc; */
+  background-color: white;
   font-size: 20px;
 }
 
@@ -65,9 +66,65 @@ body {
   text-align: center;
 }
 
+.welcome {
+  color: #404040;
+  font-family: Varela Round;
+  font-size: 20px;
+  padding: 5px;
+  text-decoration: none;
+  vertical-align: middle;
+  display: inline-block;
+  height: 100%;
+}
+
+.userphoto {
+  border-radius: 50%;
+  margin: 0 auto;
+  height: 60px;
+}
+
 #smallts {
   height: 24px;
   padding: 8px;
   font: 24px Varela Round;
   font-weight: bold;
 }
+
+#postlogin {
+  display: none;
+}
+
+#sidneyhas {
+  font: 40px Varela Round;
+  text-align: center;
+}
+
+#count {
+  font: 100px Varela Round;
+  color: #7a3b69;
+  text-align: center;
+}
+
+#points {
+  font: 40px Varela Round;
+  text-align: center;
+}
+
+#buttons {
+  border-bottom: 1px solid #563440;
+  background: #cfcfcd;
+  width: 100%;
+}
+
+.action {
+  display: inline-block;
+  color: black;
+  border: 3px solid black;
+  border-radius: 50%;
+  height: 100px;
+  width: 100px;
+  font-size: 80px;
+  font-family: Varela Round;
+  text-align: center;
+}
+

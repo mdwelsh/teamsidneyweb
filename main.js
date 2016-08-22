@@ -1,12 +1,16 @@
-// Team Sidney
+/* Team Sidney - Main Javascript code */
 
+/* Set to true to stub out authentication code. */
+var FAKE_AUTH = true;
 var provider = new firebase.auth.GoogleAuthProvider();
+var fakeUser = null;
+
 setup();
 
 // Set up initial UI elements.
 function setup() {
   doLogo();
-  if (firebase.auth().currentUser == null) {
+  if (currentUser() == null) {
     // Not logged in yet.
     showLoginButton();
   } else {
@@ -14,28 +18,56 @@ function setup() {
   }
 }
 
+function currentUser() {
+  if (FAKE_AUTH) {
+    return fakeUser;
+  } else {
+    return firebase.auth().currentUser();
+  }
+}
+
 function showLoginButton() {
   console.log("Show login button called");
-  var login = $('#login');
-  login.button().click(doLogin);
+  $('#userinfo').hide();
+  $('#login').button().click(doLogin);
+  $('#login').show();
 }
 
 function doLogin() {
   console.log("doLogin called");
-  firebase.auth().signInWithPopup(provider).then(function(result) {
-  }).catch(function(error) {
-    showError($('#loginerror'), 'Sorry, could not log you in: ' + error.message);
-  });
+  if (FAKE_AUTH) {
+    fakeUser = {
+      displayName: "Mr. Fake",
+      photoURL: "http://howtoprof.com/profsidney.jpg",
+      email: "fake@teamsidney.com",
+    };
+    showFullUI();
+  } else {
+    firebase.auth().signInWithPopup(provider).then(function(result) {
+    }).catch(function(error) {
+      showError($('#loginerror'),
+                'Sorry, could not log you in: ' + error.message);
+    });
+  }
 }
 
 function showFullUI() {
   console.log("Show full UI called");
-  $('#login').text("The full UI should be here");
+  $('#login').hide();
+  $('#welcome').text("Hi, " + currentUser().displayName + "!");
+  $('#userphoto').html("<img class='userphoto' src='" + currentUser().photoURL + "'>");
+  $('#userinfo').show();
+
+  $('#prelogin').hide('blind');
+
+  $('#count').text('120'); // TODO
+  $('#postlogin').show('fade', 1000);
 }
 
 // Draw the logo.
 function doLogo() {
   drawLogo(document.getElementById("logo"));
+  $('#prelogin').show();
 }
 
 function clearError() {

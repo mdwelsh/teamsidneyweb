@@ -3,7 +3,6 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
 
-
 <!-- Fonts -->
 <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
 <link href='https://fonts.googleapis.com/css?family=Varela+Round' rel='stylesheet' type='text/css'>
@@ -12,10 +11,11 @@
 <link href='https://fonts.googleapis.com/css?family=Amatic+SC:400,700' rel='stylesheet' type='text/css'>
 
 <!-- jQuery -->
-<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
 <!-- jQuery UI -->
-<script src="https://code.jquery.com/ui/1.12.0/jquery-ui.js"></script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/3.2.1/firebase.js"></script>
@@ -45,6 +45,10 @@
   <div id="headercontents">
     <span id="smallts" class="circled">TS</span>
     <span id="login" class="btn">Login</span>
+    <span id="userinfo">
+      <span id="welcome" class="welcome"></span>
+      <span id="userphoto"></span>
+    </span>
   </div>
 </div>
 <div id="contents">
@@ -53,6 +57,14 @@
     <div id="loginerror" class="errormsg" style="hidden"></div>
   </div>
   <div id="postlogin">
+    <div id="sidneyhas">Sidney has</div>
+    <div id="count"></div>
+    <div id="points">points</div>
+    <div id="buttons">
+      <span id="plus" class="action">+</span>
+      <span id="minus" class="action">&mdash;</span>
+      <span id="log" class="action">&#9776;</span>
+    </div>
   </div>
 </div>
 <div id="footer">
