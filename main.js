@@ -17,15 +17,14 @@ function setup() {
 function showLoginButton() {
   console.log("Show login button called");
   var login = $('#login');
-
-  $('<button/>').text('Login').appendTo(login).button().click(doLogin);
+  login.button().click(doLogin);
 }
 
 function doLogin() {
   console.log("doLogin called");
   firebase.auth().signInWithPopup(provider).then(function(result) {
   }).catch(function(error) {
-    showError('Sorry, could not log you in: ' + error.message);
+    showError($('#loginerror'), 'Sorry, could not log you in: ' + error.message);
   });
 }
 
@@ -40,12 +39,12 @@ function doLogo() {
 }
 
 function clearError() {
-  $('#error').hide();
+  elem.hide();
 }
 
-function showError(msg) {
-  $('#error').text(msg);
-  $('#error').show();
+function showError(elem, msg) {
+  elem.text(msg);
+  elem.show();
 }
 
 /*
