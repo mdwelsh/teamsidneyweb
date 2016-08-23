@@ -5,6 +5,8 @@ var FAKE_AUTH = true;
 var provider = new firebase.auth.GoogleAuthProvider();
 var fakeUser = null;
 
+var SIDNEY_PHOTO = "http://howtoprof.com/profsidney.jpg";
+
 setup();
 
 // Set up initial UI elements.
@@ -38,7 +40,7 @@ function doLogin() {
   if (FAKE_AUTH) {
     fakeUser = {
       displayName: "Mr. Fake",
-      photoURL: "http://howtoprof.com/profsidney.jpg",
+      photoURL: SIDNEY_PHOTO,
       email: "fake@teamsidney.com",
     };
     showFullUI();
@@ -52,16 +54,71 @@ function doLogin() {
 }
 
 function showFullUI() {
-  console.log("Show full UI called");
+  // Update header.
   $('#login').hide();
   $('#welcome').text("Hi, " + currentUser().displayName + "!");
   $('#userphoto').html("<img class='userphoto' src='" + currentUser().photoURL + "'>");
   $('#userinfo').show();
 
+  // Hide logo.
   $('#prelogin').hide('blind');
 
+  // Populate main content.
   $('#count').text('120'); // TODO
+  populateLog();
   $('#postlogin').show('fade', 1000);
+}
+
+function populateLog() {
+  // TODO
+  var c = 50;
+  for (i = 0; i < 10; i++) {
+    addLogEntry("8/22", "Mr. Fake", SIDNEY_PHOTO, "+", 10, c+10,
+    "Washing dishes and generally being awesome");
+    c += 10;
+  }
+}
+
+function addLogEntry(date, name, photo, op, points, total, descr) {
+  var container = $('#log');
+  var line = $('<div/>').addClass('log-line').appendTo(log);
+
+  // Date.
+  var datediv = $('<div/>')
+    .addClass("log-line-date-div")
+    .appendTo(line);
+  $('<span/>')
+    .addClass("log-line-date")
+    .text(date)
+    .appendTo(datediv);
+  // Total.
+  var tdiv = $('<span/>')
+    .addClass("log-line-date-total")
+    .appendTo(datediv);
+
+  $('<span/>').text('Total').appendTo(tdiv);
+  $('<span/>')
+     .addClass("log-line-total")
+     .text(total)
+     .appendTo(tdiv);
+
+  // Log entry.
+  var entry = $('<div/>').addClass('log-line-entry').appendTo(line);
+
+  // Photo.
+  $('<span/>')
+    .html("<img class='userphoto' src='"+photo+"'>")
+    .appendTo(entry);
+  // Op.
+  $('<span/>')
+    .addClass("log-line-op")
+    .text(op + points)
+    .appendTo(entry);
+  // Description.
+  $('<span/>')
+    .addClass("log-line-descr")
+    .text('for ' +descr)
+    .appendTo(entry);
 }
 
 // Draw the logo.
