@@ -2,10 +2,11 @@
 
 /* Set to true to stub out authentication code. */
 var FAKE_AUTH = true;
+var SIDNEY_PHOTO = "http://howtoprof.com/profsidney.jpg";
 var provider = new firebase.auth.GoogleAuthProvider();
 var fakeUser = null;
 
-var SIDNEY_PHOTO = "http://howtoprof.com/profsidney.jpg";
+var totalPoints = null;
 
 setup();
 
@@ -28,15 +29,30 @@ function currentUser() {
   }
 }
 
+// Draw the logo.
+function doLogo() {
+  drawLogo(document.getElementById("logo"));
+  $('#prelogin').show();
+}
+
+// Clear error.
+function clearError() {
+  elem.hide();
+}
+
+// Show error.
+function showError(elem, msg) {
+  elem.text(msg);
+  elem.show();
+}
+
 function showLoginButton() {
-  console.log("Show login button called");
   $('#userinfo').hide();
   $('#login').button().click(doLogin);
   $('#login').show();
 }
 
 function doLogin() {
-  console.log("doLogin called");
   if (FAKE_AUTH) {
     fakeUser = {
       displayName: "Mr. Fake",
@@ -64,32 +80,57 @@ function showFullUI() {
   $('#prelogin').hide('blind');
 
   // Populate main content.
-  $('#count').text('120'); // TODO
+  populateCount();
   populateLog();
-  $('#postlogin').show('fade', 1000);
+
+  $('#plus').click(function() {
+    doUpdate("+");
+  });
+  $('#minus').click(function() {
+    doUpdate("-");
+  });
+
+  // Show it.
+  $('#postlogin').show('fade', 2000);
+}
+
+function populateCount() {
+  if (FAKE_AUTH) {
+    totalPoints = 120;
+    showCount();
+  }
+}
+
+function showCount() {
+  $('#count').text(totalPoints);
+  $('#count').effect('highlight', 500);
 }
 
 function populateLog() {
-  // TODO
-  var c = 50;
-  for (i = 0; i < 10; i++) {
-    addLogEntry("8/22", "Mr. Fake", SIDNEY_PHOTO, "+", 10, c+10,
-    "Washing dishes and generally being awesome");
-    c += 10;
+  if (FAKE_AUTH) {
+    var c = totalPoints;
+    for (i = 0; i < 4; i++) {
+      addLogEntry(new Date(), "Mr. Fake", SIDNEY_PHOTO, "+", 10, c+10,
+      "Washing dishes and generally being awesome");
+      c += 10;
+    }
+    totalPoints = c;
+    showCount();
   }
 }
 
 function addLogEntry(date, name, photo, op, points, total, descr) {
   var container = $('#log');
-  var line = $('<div/>').addClass('log-line').appendTo(log);
+  var line = $('<div/>').addClass('log-line').prependTo(log);
 
   // Date.
   var datediv = $('<div/>')
     .addClass("log-line-date-div")
     .appendTo(line);
+  var datestring = (date.getMonth() + 1) + '/' + date.getDate();
   $('<span/>')
     .addClass("log-line-date")
-    .text(date)
+    .text(datestring)
     .appendTo(datediv);
   // Total.
   var tdiv = $('<span/>')
@@ -121,19 +162,64 @@ function addLogEntry(date, name, photo, op, points, total, descr) {
     .appendTo(entry);
 }
 
-// Draw the logo.
-function doLogo() {
-  drawLogo(document.getElementById("logo"));
-  $('#prelogin').show();
+function doUpdate(op) {
+  // Hide log.
+  $('#log').hide('fade', 250);
+
+  // Twiddle which controls are visible.
+  var thisbtn = (op == "+" ? $("#plus") : $("#minus"));
+  var otherbtn = (op == "+" ? $("#minus") : $("#plus"));
+  thisbtn.toggleClass('fade-btn', true);
+  otherbtn.hide();
+  $('#updatenum').val('20').show();
+  $('#for').show();
+  $('#check')
+    .click(function() { doCheck(op); })
+    .show();
+  $('#cancel')
+    .click(function() { updateDone(op); })
+    .show();
 }
 
-function clearError() {
-  elem.hide();
+function doCheck(op) {
+  var descr = $('#for').val();
+  var pts = parseInt($('#updatenum').val(), 10);
+  applyUpdate(new Date(), op, pts, descr);
+  updateDone(op);
 }
 
-function showError(elem, msg) {
-  elem.text(msg);
-  elem.show();
+function applyUpdate(date, op, pts, descr) {
+  if (op == "+") {
+    totalPoints += pts;
+  } else {
+    totalPoints -= pts;
+  }
+  showCount();
+  if (FAKE_AUTH) {
+    addLogEntry(date, currentUser().displayName,
+                currentUser().photoURL, op, pts, totalPoints, descr);
+  }
+}
+
+function updateDone(op) {
+  // Remove click handlers on buttons.
+  $('#check').off('click');
+  $('#cancel').off('click');
+  // Clear form.
+  $('#for').val('');
+
+  // Twiddle which controls are visible.
+  var thisbtn = (op == "+" ? $("#plus") : $("#minus"));
+  var otherbtn = (op == "+" ? $("#minus") : $("#plus"));
+  thisbtn.toggleClass('fade-btn', false);
+  otherbtn.show();
+  $('#updatenum').hide();
+  $('#for').hide();
+  $('#check').hide();
+  $('#cancel').hide();
+
+  // Show log.
+  $('#log').show('fade', 250);
 }
 
 /*

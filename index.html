@@ -55,7 +55,7 @@
 <div id="contents">
   <div id="prelogin">
     <div id="logo"></div>
-    <div id="loginerror" class="errormsg" style="hidden"></div>
+    <div id="loginerror" class="errormsg" style="display:none;"></div>
   </div>
   <div id="postlogin">
     <div id="sidneyhas">Sidney has</div>
@@ -64,12 +64,18 @@
     <div id="buttons">
       <span id="plus" class="action">+</span>
       <span id="minus" class="action">&mdash;</span>
+      <input id="updatenum" class="updatenum" style="display:none;"/>
+      <div id="fordiv">
+        <input id="for" class="for" placeholder="What for?" style="display:none;"/>
+      </div>
+      <div id="checkcanceldiv">
+        <span id="check" class="action" style="display:none;">&#10003;</span>
+        <span id="cancel" class="action" style="display:none;">X</span>
+      </div>
     </div>
     <div id="log"></div>
+    <div id="update" style="display:none;"></div>
   </div>
-</div>
-<div id="footer">
-  <span>A TS production</span>
 </div>
 
 <script src="main.js"></script>
