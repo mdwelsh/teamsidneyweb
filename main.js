@@ -125,7 +125,7 @@ function populateLog() {
   if (FAKE_AUTH) {
     var c = totalPoints;
     for (i = 0; i < 4; i++) {
-      addLogEntry(new Date(), "Mr. Fake", SIDNEY_PHOTO, "+", 10, c+10,
+      showLogEntry(new Date(), "Mr. Fake", SIDNEY_PHOTO, "+", 10, c+10,
       "Washing dishes and generally being awesome");
       c += 10;
     }
@@ -148,6 +148,11 @@ function addLogEntry(op, points, total, descr) {
     'total': total,
     'descr': descr,
   });
+
+  if (FAKE_AUTH) {
+    showLogEntry(new Date(), currentUser().displayName,
+                 currentUser().photoURL, op, points, total, descr);
+  }
 }
 
 function newLogEntry(snapshot, preChildKey) {
@@ -243,8 +248,7 @@ function applyUpdate(date, op, pts, descr) {
     });
   }
 
-  addLogEntry(date, currentUser().displayName,
-              currentUser().photoURL, op, pts, totalPoints, descr);
+  addLogEntry(op, pts, totalPoints, descr);
 
   showCount();
 }
