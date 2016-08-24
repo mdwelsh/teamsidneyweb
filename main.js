@@ -55,7 +55,7 @@ function showLoginButton() {
 function doLogin() {
   if (FAKE_AUTH) {
     fakeUser = {
-      displayName: "Mr. Fake",
+      displayName: "Fakey McFakerson",
       photoURL: SIDNEY_PHOTO,
       email: "fake@teamsidney.com",
     };
@@ -72,7 +72,9 @@ function doLogin() {
 function showFullUI() {
   // Update header.
   $('#login').hide();
-  $('#welcome').text("Hi, " + currentUser().displayName + "!");
+  $('#welcome')
+     .text("Hi, " + currentUser().displayName.split(" ")[0] + "!")
+     .click(logout);
   $('#userphoto').html("<img class='userphoto' src='" + currentUser().photoURL + "'>");
   $('#userinfo').show();
 
@@ -195,7 +197,7 @@ function applyUpdate(date, op, pts, descr) {
     totalPoints -= pts;
   }
 
-  if (!FAKE_COUNT) {
+  if (!FAKE_AUTH) {
     // Write back to database.
     firebase.database().ref('stats').set({
       count: totalPoints,
@@ -239,6 +241,7 @@ var logRef = firebase.database().ref('log/');
 
 /* Callback when count is updated */
 countRef.on('value', function(snapshot) {
+  console.log("Got new value for stats/count: " + snapshot.val());
   totalPoints = snapshot.val();
   showCount();
 });
@@ -246,7 +249,7 @@ countRef.on('value', function(snapshot) {
 function logout() {
   firebase.auth().signOut().then(function() {
   }, function(error) {
-    $('#userinfo').text('Sorry, could not log you out: ' + error.message);
+     console.log('Problem logging out: ' + error.message);
   });
 }
 
