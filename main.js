@@ -8,6 +8,10 @@ var fakeUser = null;
 
 var totalPoints = null;
 
+// Initialize click handlers.
+$('#login').button().click(doLogin);
+$('#welcome').click(logout);
+
 setup();
 
 // Set up initial UI elements.
@@ -54,7 +58,6 @@ function showError(elem, msg) {
 function showLoginButton() {
   $('#postlogin').hide();
   $('#userinfo').hide();
-  $('#login').button().click(doLogin);
   $('#login').show();
 }
 
@@ -79,8 +82,7 @@ function showFullUI() {
   // Update header.
   $('#login').hide();
   $('#welcome')
-     .text("Hi, " + currentUser().displayName.split(" ")[0] + "!")
-     .click(logout);
+     .text("Hi, " + currentUser().displayName.split(" ")[0] + "!");
   $('#userphoto').html("<img class='userphoto' src='" + currentUser().photoURL + "'>");
   $('#userinfo').show();
 
