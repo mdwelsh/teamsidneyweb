@@ -137,6 +137,7 @@ function populateLog() {
 function addLogEntry(op, points, total, descr) {
   console.log("Writing log entry: " + op + " " + points + " " + total +
               " " + descr);
+  var logRef = firebase.database().ref('log/');
   var entry = logRef.push();
   entry.set({
     'date': new Date(),
