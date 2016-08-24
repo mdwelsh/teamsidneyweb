@@ -18,6 +18,11 @@ function setup() {
     showLoginButton();
   } else {
     showFullUI();
+
+    var countRef = firebase.database().ref('stats/count');
+    var logRef = firebase.database().ref('log/');
+    /* Callback when count is updated */
+    countRef.on('value', countUpdated);
   }
 }
 
@@ -47,6 +52,7 @@ function showError(elem, msg) {
 }
 
 function showLoginButton() {
+  $('#postlogin').hide();
   $('#userinfo').hide();
   $('#login').button().click(doLogin);
   $('#login').show();
@@ -234,13 +240,8 @@ function updateDone(op) {
   $('#log').show('fade', 250);
 }
 
-/* Firebase interfaces below */
-
-var countRef = firebase.database().ref('stats/count');
-var logRef = firebase.database().ref('log/');
-
-/* Callback when count is updated */
-countRef.on('value', function(snapshot) {
+/* Called when count updated from DB. */
+function countUpdated(snapshot) {
   console.log("Got new value for stats/count: " + snapshot.val());
   totalPoints = snapshot.val();
   showCount();
@@ -248,17 +249,13 @@ countRef.on('value', function(snapshot) {
 
 function logout() {
   firebase.auth().signOut().then(function() {
+    setup(); // Get back to initial state.
   }, function(error) {
-     console.log('Problem logging out: ' + error.message);
+    console.log('Problem logging out: ' + error.message);
   });
 }
 
 /* Callback when signin complete */
 firebase.auth().onAuthStateChanged(function(user) {
-  if (user == null) {
-    // Not logged in yet.
-    showLoginButton();
-  } else {
-    showFullUI();
-  }
+  setup();
 });
