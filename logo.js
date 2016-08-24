@@ -5,8 +5,7 @@ var fontUrl = "https://fonts.googleapis.com/css?family=" +
   font.replace(" ", "+");
 
 function drawLogo(base) {
-  console.log("Font is " + font);
-  console.log("Font URL is " + fontUrl);
+  $(base).empty();
 
   // Force load of font by adding an empty div with the font up top.
   var d = document.createElement('div');
