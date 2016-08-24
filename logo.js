@@ -45,7 +45,7 @@ function finishLogo(cnv, ctx) {
   cnv.height = d;
   ctx = cnv.getContext("2d");
 
-  ctx.strokeStyle = "#7a3b69";
+  ctx.strokeStyle = "#285b7b";
   ctx.beginPath();
   ctx.arc(d / 2, d / 2, cd, 0, 2 * Math.PI);
   ctx.lineWidth = cd / 4.5;
@@ -54,12 +54,12 @@ function finishLogo(cnv, ctx) {
   // Font size for TS.
   var fs = cd * 1.3;
   ctx.font = fs+'px "' + font + '"';
-  ctx.fillStyle = "#9a879d";
+  ctx.fillStyle = "#50514f";
   ctx.fillText("TS", d*0.28, d*0.62);
 
   // Font size for circle.
   var cfs = cd / 3;
-  ctx.fillStyle = "#9a879d";
+  ctx.fillStyle = "#285b7b";
   drawCircularText(cnv, "TEAM SIDNEY'S POINT TRACKER", d, 0, "center",
   true, true, font, cfs + "px", 0);
 }

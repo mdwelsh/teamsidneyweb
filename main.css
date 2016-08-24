@@ -1,4 +1,5 @@
 /* https://coolors.co/d7dedc-cfcfcd-9a879d-7a3b69-563440 */
+/* https://coolors.co/eeeeff-7f7caf-9fb4c7-28587b-9fb798 */
 
 body {
   background-color: white;
@@ -7,7 +8,7 @@ body {
 
 #header {
   position: fixed; 
-  border-bottom: 1px solid #563440;
+  border-bottom: 1px solid #285b7b;
   background: #cfcfcd;
   top: 0; 
   left: 0; 
@@ -18,7 +19,7 @@ body {
 #footer {
   font: 12px Varela Round;
   position: fixed;
-  border-top: 1px solid #563440;
+  border-top: 1px solid #285b7b;
   background: #cfcfcd;
   padding: 10px 20px; 
   bottom: 0;
@@ -54,14 +55,14 @@ body {
   font-family: Varela Round;
   color: #ffffff;
   font-size: 20px;
-  background: #3498db;
+  background: #285b7b;
   padding: 10px 20px 10px 20px;
   text-decoration: none;
 }
 
 .circled {
   border-radius: 50%;
-  border: 8px solid #7a3b69;
+  border: 8px solid #285b7b;
   text-align: center;
 }
 
@@ -87,6 +88,7 @@ body {
   padding: 8px;
   font: 24px Varela Round;
   font-weight: bold;
+  color: #50514f;
 }
 
 #postlogin {
@@ -100,7 +102,7 @@ body {
 
 #count {
   font: 100px Varela Round;
-  color: #7a3b69;
+  color: #285b7b;
   text-align: center;
 }
 
@@ -154,7 +156,7 @@ body {
 
 .log-line-total {
   font-size: 40px;
-  color: #7a3b69;
+  color: #285b7b;
   font-weight: bold;
   padding: 0 5px;
   float: right;
@@ -167,7 +169,7 @@ body {
 
 .log-line-op {
   font-size: 24px;
-  color: #7a3b69;
+  color: #285b7b;
   font-weight: bold;
   padding: 0 10px;
   height: 24px;
