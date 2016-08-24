@@ -140,7 +140,7 @@ function addLogEntry(op, points, total, descr) {
   var logRef = firebase.database().ref('log/');
   var entry = logRef.push();
   entry.set({
-    'date': new Date(),
+    'date': new Date().toJSON(),
     'name': currentUser().displayName,
     'photo': currentUser().photoURL,
     'op': op,
@@ -158,7 +158,7 @@ function addLogEntry(op, points, total, descr) {
 function newLogEntry(snapshot, preChildKey) {
   var entry = snapshot.val();
   console.log("Received new log entry: " + JSON.stringify(entry));
-  showLogEntry(entry.date, entry.name, entry.photo,
+  showLogEntry(new Date(entry.date), entry.name, entry.photo,
                entry.op, entry.points, entry.total, entry.descr);
 }
 
@@ -227,11 +227,11 @@ function doUpdate(op) {
 function doCheck(op) {
   var descr = $('#for').val();
   var pts = parseInt($('#updatenum').val(), 10);
-  applyUpdate(new Date(), op, pts, descr);
+  applyUpdate(op, pts, descr);
   updateDone(op);
 }
 
-function applyUpdate(date, op, pts, descr) {
+function applyUpdate(op, pts, descr) {
   if (op == "+") {
     totalPoints += pts;
   } else {
