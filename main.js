@@ -131,6 +131,9 @@ function populateLog() {
     }
     totalPoints = c;
     showCount();
+  } else {
+    // Clear out log in DOM.
+    $("#log").empty();
   }
 }
 
