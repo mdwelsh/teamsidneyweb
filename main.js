@@ -245,7 +245,7 @@ function countUpdated(snapshot) {
   console.log("Got new value for stats/count: " + snapshot.val());
   totalPoints = snapshot.val();
   showCount();
-});
+}
 
 function logout() {
   firebase.auth().signOut().then(function() {
