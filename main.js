@@ -20,6 +20,9 @@ function setup() {
   if (currentUser() == null) {
     // Not logged in yet.
     showLoginButton();
+    countRef = null;
+    logRef = null;
+
   } else {
     showFullUI();
 
@@ -27,6 +30,7 @@ function setup() {
     var logRef = firebase.database().ref('log/');
     /* Callback when count is updated */
     countRef.on('value', countUpdated);
+    logRef.on('child_added', newLogEntry);
   }
 }
 
@@ -83,7 +87,8 @@ function showFullUI() {
   $('#login').hide();
   $('#welcome')
      .text("Hi, " + currentUser().displayName.split(" ")[0] + "!");
-  $('#userphoto').html("<img class='userphoto' src='" + currentUser().photoURL + "'>");
+  $('#userphoto')
+     .html("<img class='userphoto' src='" + currentUser().photoURL + "'>");
   $('#userinfo').show();
 
   // Hide logo.
@@ -129,7 +134,29 @@ function populateLog() {
   }
 }
 
-function addLogEntry(date, name, photo, op, points, total, descr) {
+function addLogEntry(op, points, total, descr) {
+  console.log("Writing log entry: " + op + " " + points + " " + total +
+              " " + descr);
+  var entry = logRef.push();
+  entry.set({
+    'date': new Date(),
+    'name': currentUser().displayName,
+    'photo': currentUser().photoURL,
+    'op': op,
+    'points': points,
+    'total': total,
+    'descr': descr,
+  });
+}
+
+function newLogEntry(snapshot, preChildKey) {
+  var entry = snapshot.val();
+  console.log("Received new log entry: " + JSON.stringify(entry));
+  showLogEntry(entry.date, entry.name, entry.photo,
+               entry.op, entry.points, entry.total, entry.descr);
+}
+
+function showLogEntry(date, name, photo, op, points, total, descr) {
   var container = $('#log');
   var line = $('<div/>').addClass('log-line').prependTo(log);
 
