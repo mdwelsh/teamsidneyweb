@@ -31,8 +31,8 @@ function setup() {
     var countRef = firebase.database().ref('stats/count');
     var logRef = firebase.database().ref('log/');
     /* Callback when count is updated */
-    countRef.on('value', countUpdated);
-    logRef.on('child_added', newLogEntry);
+    countRef.on('value', countUpdated, dbErrorCallback);
+    logRef.on('child_added', newLogEntry, dbErrorCallback);
   }
 }
 
@@ -50,8 +50,17 @@ function doLogo() {
   $('#prelogin').show();
 }
 
+// Called when there is an error reading the database.
+function dbErrorCallback(err) {
+  // Ignore the error if not logged in yet.
+  if (currentUser() != null) {
+    showError($('#dberror'), err.message);
+  }
+}
+
 // Clear error.
-function clearError() {
+function clearError(elem) {
+  elem.text('');
   elem.hide();
 }
 
@@ -163,6 +172,7 @@ function addLogEntry(op, points, total, descr) {
 }
 
 function newLogEntry(snapshot, preChildKey) {
+  clearError($('#dberror'));
   var entry = snapshot.val();
   console.log("Received new log entry: " + JSON.stringify(entry));
   showLogEntry(new Date(entry.date), entry.name, entry.photo,
@@ -283,6 +293,7 @@ function updateDone(op) {
 /* Called when count updated from DB. */
 function countUpdated(snapshot) {
   console.log("Got new value for stats/count: " + snapshot.val());
+  clearError($('#dberror'));
   totalPoints = snapshot.val();
   showCount();
 }
