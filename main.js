@@ -9,7 +9,9 @@ var fakeUser = null;
 var totalPoints = null;
 
 // Initialize click handlers.
+$('#login').off('click');
 $('#login').button().click(doLogin);
+$('#welcome').off('click');
 $('#welcome').click(logout);
 
 setup();
@@ -98,9 +100,11 @@ function showFullUI() {
   populateCount();
   populateLog();
 
+  $('#plus').off('click');
   $('#plus').click(function() {
     doUpdate("+");
   });
+  $('#minus').off('click');
   $('#minus').click(function() {
     doUpdate("-");
   });
@@ -219,9 +223,11 @@ function doUpdate(op) {
   otherbtn.hide();
   $('#updatenum').val('20').show();
   $('#for').show();
+  $('#check').off('click');
   $('#check')
     .click(function() { doCheck(op); })
     .show();
+  $('#cancel').off('click');
   $('#cancel')
     .click(function() { updateDone(op); })
     .show();
@@ -257,9 +263,6 @@ function applyUpdate(op, pts, descr) {
 }
 
 function updateDone(op) {
-  // Remove click handlers on buttons.
-  $('#check').off('click');
-  $('#cancel').off('click');
   // Clear form.
   $('#for').val('');
 
