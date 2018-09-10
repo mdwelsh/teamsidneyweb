@@ -1,0 +1,166 @@
+/* https://coolors.co/d7dedc-cfcfcd-9a879d-7a3b69-563440 */
+/* https://coolors.co/eeeeff-7f7caf-9fb4c7-28587b-9fb798 */
+
+body {
+  background-color: #202020;
+  font-size: 20px;
+}
+
+#header {
+  position: fixed; 
+  border-bottom: 1px solid #a08080;
+  background: #404040;
+  top: 0; 
+  left: 0; 
+  z-index: 2000; 
+  width: 100%;
+}
+
+#headercontents {
+  padding: 10px 20px;
+  font-family: Varela Round;
+  display: flex;
+  justify-content: space-between;
+}
+
+#contents {
+  margin-top: 100px;
+}
+
+.errormsg {
+  color: red;
+  font-family: Varela Round;
+  font-size: 12px;
+}
+
+#login {
+  height: 100%;
+  padding: 10px;
+}
+
+.btn {
+  border-radius: 28px;
+  font-family: Varela Round;
+  color: #ffffff;
+  font-size: 20px;
+  background: #285b7b;
+  padding: 10px 20px 10px 20px;
+  text-decoration: none;
+}
+
+.circled {
+  border-radius: 50%;
+  border: 8px solid #f00000;
+  text-align: center;
+  height: 100%;
+}
+
+#heading {
+  color: #80a0ff;
+  font-family: Baloo Da;
+  font-size: 24px;
+  padding: 0px;
+  text-decoration: none;
+  vertical-align: middle;
+  display: inline-block;
+  height: 100%;
+}
+
+.welcome {
+  color: #f0f0f0;
+  font-family: Varela Round;
+  font-size: 20px;
+  padding: 5px;
+  text-decoration: none;
+  vertical-align: middle;
+  display: inline-block;
+  height: 100%;
+}
+
+.userphoto {
+  border-radius: 50%;
+  margin: 0 auto;
+  height: 60px;
+}
+
+#smallts {
+  height: 24px;
+  padding: 8px;
+  font: 12px Varela Round;
+  font-weight: bold;
+  color: #f08080;
+}
+
+.action {
+  margin: 10px;
+  display: inline-block;
+  color: black;
+  border: 3px solid black;
+  border-radius: 50%;
+  height: 60px;
+  line-height: 60px;
+  width: 60px;
+  font-size: 50px;
+  font-family: Roboto;
+  text-align: center;
+}
+
+.fade-btn {
+  color: #909090;
+  border: 3px solid #909090;
+}
+
+#log {
+  margin-top: 20px;
+}
+
+.log-line {
+  font-family: Roboto;
+  font-size: 18px;
+  color: #808080;
+}
+
+.log-line-entry {
+  padding-left: 10px;
+  vertical-align: middle;
+}
+
+.log-line-date {
+}
+
+.log-line-text {
+  float: right;
+}
+
+#striplist {
+  padding-top: 10px;
+}
+
+.strip-line {
+  margin-top: 10px;
+  justify-content: space-between;
+}
+
+.strip-id {
+  font-family: Varela Round;
+  color: #ffffff;
+  font-size: 20px;
+  padding: 10px;
+}
+
+.strip-status {
+  font-family: Roboto;
+  color: #808080;
+  font-size: 12px;
+}
+
+.strip-select {
+  float: right;
+  font-family: Varela Round;
+  color: #ffffff;
+  font-size: 20px;
+  background: #606060;
+  text-decoration: none;
+  width: 100px;
+  height: 100%;
+}

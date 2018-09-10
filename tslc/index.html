@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+<link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+<link href='https://fonts.googleapis.com/css?family=Varela+Round' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Vast+Shadow' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Baloo+Da' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Amatic+SC:400,700' rel='stylesheet' type='text/css'>
+
+<!-- Moment.js -->
+<script src="moment.min.js"></script>
+
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+<!-- jQuery UI -->
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/3.2.1/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyABCaBBY04zpvIl1efmOPrKwNtPkgTXfqs",
+    authDomain: "team-sidney.firebaseapp.com",
+    databaseURL: "https://team-sidney.firebaseio.com",
+    storageBucket: "team-sidney.appspot.com",
+  };
+  firebase.initializeApp(config);
+</script>
+
+<!-- Main CSS -->
+<link rel="stylesheet" href="main.css" type="text/css">
+
+</style>
+
+</head>
+
+<body>
+<div id="header">
+  <div id="headercontents">
+    <span id="heading">Team Sidney Light Controller</span>
+    <span id="login" class="btn">Login</span>
+    <span id="userinfo">
+      <span id="userphoto"></span>
+    </span>
+  </div>
+</div>
+<div id="contents">
+  <div id="postlogin">
+    <div id="dberror" class="errormsg"></div>
+    <div id="striplist"></div>
+    <div id="log"></div>
+  </div>
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>
