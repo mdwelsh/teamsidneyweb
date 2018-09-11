@@ -1,5 +1,15 @@
 /* Team Sidney Light Controller - Main Javascript code */
 
+/* Firebase rules are set up to allow public REST access to read
+ * the strips entries in the database. The value of a strip with
+ * ID "strip3" can be accessed via:
+ * 
+ * https://team-sidney.firebaseio.com/strips/strip3.json
+ *
+ * which returns a JSON-encoded string for the value (e.g., "Off"), with
+ * the quotes around it.
+ */
+
 /* Set to true to stub out authentication code. */
 var FAKE_AUTH = false;
 var SIDNEY_PHOTO = "http://howtoprof.com/profsidney.jpg";
@@ -14,6 +24,8 @@ $('#login').button().click(doLogin);
 $('#userinfo').off('click');
 $('#userinfo').click(logout);
 
+var logRef = null;
+
 setup();
 
 // Set up initial UI elements.
@@ -21,16 +33,12 @@ function setup() {
   if (currentUser() == null) {
     // Not logged in yet.
     showLoginButton();
-    countRef = null;
     logRef = null;
 
   } else {
     showFullUI();
 
-    var countRef = firebase.database().ref('stats/count');
-    var logRef = firebase.database().ref('log/');
-    /* Callback when count is updated */
-    countRef.on('value', countUpdated, dbErrorCallback);
+    logRef = firebase.database().ref('log/');
     logRef.on('child_added', newLogEntry, dbErrorCallback);
   }
 }
@@ -98,6 +106,7 @@ function showFullUI() {
   $('#postlogin').hide('blind');
 
   // Populate main content.
+  $("#log").empty();
   $("#striplist").empty();
   addStrip("strip1");
   addStrip("strip2");
@@ -112,6 +121,8 @@ var allStrips = {};
 
 // Add a new strip with the given ID.
 function addStrip(id) {
+  console.log("addStrip called");
+
   var container = $('#striplist');
   var strip = $('<div/>')
     .attr('id', 'stripline-strip-'+id)
@@ -136,18 +147,40 @@ function addStrip(id) {
     .text('Fire')
     .appendTo(ss);
 
-  ss.change(selectorChanged);
+  // Get database ref.
+  var stripRef = firebase.database().ref('strips/' + id);
 
   var stripState = {
     id: id,
+    val: null,
     lastCheckin: null,
     stripElem: strip,
+    ref: stripRef,
   };
   allStrips['strip-'+id] = stripState;
+
+  ss.change(selectorChanged);
+  stripRef.on('value', stripUpdated, dbErrorCallback);
+}
+
+// Callback invoked when database returns new value for a strip.
+function stripUpdated(snapshot) {
+  console.log("stripUpdated called");
+  console.log("Got new value for strip " + snapshot.key + ": " +
+    snapshot.val());
+  var stripid = "strip-" + snapshot.key;
+  var strip = allStrips[stripid];
+  if (strip == null) {
+    console.log("Whoops, no entry for " + stripid);
+    console.log(allStrips);
+    return;
+  }
+  $('#' + stripid).val(snapshot.val());
 }
 
 // Callback invoked when selector for a strip has changed.
 function selectorChanged(event) {
+  console.log("selectorChange called");
   var stripid = event.target.id;
   var value = event.target.value;
   $('#stripline-' + stripid).effect('highlight');
@@ -156,14 +189,21 @@ function selectorChanged(event) {
 
 // Set a given strip to the given value.
 function setStripValue(stripid, value) {
+  console.log("setStripValue called");
   var strip = allStrips[stripid];
   if (strip == null) {
     return;
   }
-  showLogEntry(new Date(), 'Set ' + strip.id + ' to ' + value);
-  $('#' + stripid).val(value);
 
-  // TODO(mdw) - Add Firebase code to update database.
+  // Write current state to the database.
+  strip.ref.set(value)
+    .then(function() {
+      addLogEntry('set ' + strip.id + ' to ' + value);
+      $('#' + stripid).val(value);
+    })
+    .catch(function(error) {
+      showError($('#dberror'), error.message);
+    });
 
   // XXX MDW - The following is just for testing.
   stripCheckin(stripid);
@@ -171,6 +211,7 @@ function setStripValue(stripid, value) {
 
 // Callback invoked when a given strip checks in.
 function stripCheckin(stripid) {
+  console.log("stripCheckin called");
   var strip = allStrips[stripid];
   if (strip == null) {
     addStrip(stripid);
@@ -182,6 +223,7 @@ function stripCheckin(stripid) {
 
 // Update the last checkin status of all strips.
 function updateAllStripStatus() {
+  console.log("updateAllStripStatus called");
   $.each(allStrips, function(index, elem) {
     console.log('Iterating over strips: ' + index);
     console.log(elem);
@@ -195,20 +237,53 @@ function updateAllStripStatus() {
   });
 }
 
-// Add a new log entry.
-function showLogEntry(date, text) {
+// Add a new log entry to the database.
+function addLogEntry(text) {
+  console.log("Writing log entry: " + text);
+  var logRef = firebase.database().ref('log/');
+  var entry = logRef.push();
+  entry.set({
+    'date': new Date().toJSON(),
+    'name': currentUser().displayName,
+    'text': text,
+  });
+
+  if (FAKE_AUTH) {
+    showLogEntry(new Date(), currentUser().displayName, text);
+  }
+}
+
+// Callback invoked when new log entry hits the database.
+function newLogEntry(snapshot, preChildKey) {
+  console.log('newLogEntry called');
+  clearError($('#dberror'));
+  var entry = snapshot.val();
+  console.log("Received new log entry: " + JSON.stringify(entry));
+  showLogEntry(new Date(entry.date), entry.name, entry.text);
+}
+
+// Show a log entry.
+function showLogEntry(date, name, text) {
+  console.log('showLogEntry called: '+text);
+
   var container = $('#log');
   var line = $('<div/>').addClass('log-line').appendTo(container);
 
   // Log entry.
   var entry = $('<div/>').addClass('log-line-entry').appendTo(line);
 
+  console.log('Date received: ' + date);
   var m = new moment(date);
-  var dateString = moment().format("ddd, h:mmA");
+  console.log('Moment is: ' + moment);
+  var dateString = m.format("ddd, h:mmA");
 
   $('<span/>')
     .addClass("log-line-date")
     .text(dateString)
+    .appendTo(entry);
+  $('<span/>')
+    .addClass("log-line-name")
+    .text(name)
     .appendTo(entry);
   $('<span/>')
     .addClass("log-line-text")

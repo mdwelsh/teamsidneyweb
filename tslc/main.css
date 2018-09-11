@@ -116,7 +116,7 @@ body {
 
 .log-line {
   font-family: Roboto;
-  font-size: 18px;
+  font-size: 12px;
   color: #808080;
 }
 
@@ -128,8 +128,13 @@ body {
 .log-line-date {
 }
 
+.log-line-name {
+  padding-left: 10px;
+}
+
 .log-line-text {
-  float: right;
+  padding-left: 10px;
+/*  float: right; */
 }
 
 #striplist {
