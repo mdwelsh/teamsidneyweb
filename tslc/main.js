@@ -106,6 +106,34 @@ function showFullUI() {
   $('#postlogin').hide('blind');
 
   // Populate main content.
+  
+  var dialog = $("#addStripDialog" ).dialog({
+    autoOpen: false,
+    height: 400,
+    width: 350,
+    modal: true,
+    buttons: {
+      "Add": addStripDone,
+      Cancel: function() {
+        dialog.dialog( "close" );
+      }
+    },
+    close: function() {
+      form[ 0 ].reset();
+      //allFields.removeClass( "ui-state-error" );
+    }
+  });
+
+  var form = dialog.find("form").on("submit", function(event) {
+    event.preventDefault();
+    addStripDone();
+  });
+ 
+  $("#addStrip").off('click');
+  $("#addStrip").button().on('click', function() {
+    dialog.dialog("open");
+  });
+
   $("#log").empty();
   $("#striplist").empty();
   addStrip("strip1");
@@ -118,6 +146,11 @@ function showFullUI() {
 
 // Mapping from strip-ID to object maintaining strip state.
 var allStrips = {};
+
+// Callback invoked when add strip dialog completes.
+function addStripDone() {
+  console.log("addStripDone called");
+}
 
 // Add a new strip with the given ID.
 function addStrip(id) {
@@ -165,14 +198,9 @@ function addStrip(id) {
 
 // Callback invoked when database returns new value for a strip.
 function stripUpdated(snapshot) {
-  console.log("stripUpdated called");
-  console.log("Got new value for strip " + snapshot.key + ": " +
-    snapshot.val());
   var stripid = "strip-" + snapshot.key;
   var strip = allStrips[stripid];
   if (strip == null) {
-    console.log("Whoops, no entry for " + stripid);
-    console.log(allStrips);
     return;
   }
   $('#' + stripid).val(snapshot.val());
@@ -180,7 +208,6 @@ function stripUpdated(snapshot) {
 
 // Callback invoked when selector for a strip has changed.
 function selectorChanged(event) {
-  console.log("selectorChange called");
   var stripid = event.target.id;
   var value = event.target.value;
   $('#stripline-' + stripid).effect('highlight');
@@ -189,7 +216,6 @@ function selectorChanged(event) {
 
 // Set a given strip to the given value.
 function setStripValue(stripid, value) {
-  console.log("setStripValue called");
   var strip = allStrips[stripid];
   if (strip == null) {
     return;
@@ -211,7 +237,6 @@ function setStripValue(stripid, value) {
 
 // Callback invoked when a given strip checks in.
 function stripCheckin(stripid) {
-  console.log("stripCheckin called");
   var strip = allStrips[stripid];
   if (strip == null) {
     addStrip(stripid);
@@ -223,10 +248,7 @@ function stripCheckin(stripid) {
 
 // Update the last checkin status of all strips.
 function updateAllStripStatus() {
-  console.log("updateAllStripStatus called");
   $.each(allStrips, function(index, elem) {
-    console.log('Iterating over strips: ' + index);
-    console.log(elem);
     var d = elem.lastCheckin;
     var dateString = 'never';
     if (d != null) {
@@ -239,7 +261,6 @@ function updateAllStripStatus() {
 
 // Add a new log entry to the database.
 function addLogEntry(text) {
-  console.log("Writing log entry: " + text);
   var logRef = firebase.database().ref('log/');
   var entry = logRef.push();
   entry.set({
@@ -255,26 +276,20 @@ function addLogEntry(text) {
 
 // Callback invoked when new log entry hits the database.
 function newLogEntry(snapshot, preChildKey) {
-  console.log('newLogEntry called');
   clearError($('#dberror'));
   var entry = snapshot.val();
-  console.log("Received new log entry: " + JSON.stringify(entry));
   showLogEntry(new Date(entry.date), entry.name, entry.text);
 }
 
 // Show a log entry.
 function showLogEntry(date, name, text) {
-  console.log('showLogEntry called: '+text);
-
   var container = $('#log');
   var line = $('<div/>').addClass('log-line').appendTo(container);
 
   // Log entry.
   var entry = $('<div/>').addClass('log-line-entry').appendTo(line);
 
-  console.log('Date received: ' + date);
   var m = new moment(date);
-  console.log('Moment is: ' + moment);
   var dateString = m.format("ddd, h:mmA");
 
   $('<span/>')

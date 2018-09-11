@@ -27,6 +27,13 @@ body {
   margin-top: 100px;
 }
 
+.controls {
+  position: fixed;
+  bottom: 48px;
+  right: 24px;
+/*  height: 100px; */
+}
+
 .errormsg {
   color: red;
   font-family: Varela Round;
@@ -44,7 +51,6 @@ body {
   color: #ffffff;
   font-size: 20px;
   background: #285b7b;
-  padding: 10px 20px 10px 20px;
   text-decoration: none;
 }
 

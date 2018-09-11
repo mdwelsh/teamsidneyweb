@@ -18,8 +18,8 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
 <!-- jQuery UI -->
-<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/3.2.1/firebase.js"></script>
@@ -56,8 +56,22 @@
     <div id="dberror" class="errormsg"></div>
     <div id="striplist"></div>
     <div id="log"></div>
+    <div id="controls" class="controls">
+      <span id="addStrip" class="btn">+</span>
+    </div>
   </div>
 </div>
+
+    <div id="addStripDialog" title="Add strip">
+      <form>
+        <fieldset>
+          <label for="macAddress">MAC address</label>
+          <input type="text" name="macAddress" id="macAddress" value="00:00:00:00:00:00" class="text ui-widget-content ui-corner-all">
+          <label for="name">name</label>
+          <input type="text" name="name" id="name" value="strip1" class="text ui-widget-content ui-corner-all">
+        </fieldset>
+      </form>
+    </div>
 
 <script src="main.js"></script>
 </body>
