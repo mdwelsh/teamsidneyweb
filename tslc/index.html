@@ -1,7 +1,13 @@
 <!doctype html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+<!-- <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/> -->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<!-- Bootstrap material design -->
+<link rel="stylesheet" href="https://unpkg.com/bootstrap-material-design@4.1.1/dist/css/bootstrap-material-design.min.css" integrity="sha384-wXznGJNEXNG1NFsbm0ugrLFMQPWswR3lds2VeinahP8N0zJw9VWSopbjv2x7WCvX" crossorigin="anonymous">
+<!-- Material Design for Bootstrap fonts and icons -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons">
 
 <!-- Fonts -->
 <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
@@ -16,6 +22,9 @@
 
 <!-- jQuery -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://unpkg.com/popper.js@1.12.6/dist/umd/popper.js" integrity="sha384-fA23ZRQ3G/J53mElWqVJEGJzU0sTs+SvzG8fXVWP+kJQ1lwFAOkcUOysnlKJC33U" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/bootstrap-material-design@4.1.1/dist/js/bootstrap-material-design.js" integrity="sha384-CauSuKpEqAFajSpkdjv3z9t8E7RlpJ1UP0lKM/+NdtSarroVKu069AlsRPKkFBz9" crossorigin="anonymous"></script>
+<script>$(document).ready(function() { $('body').bootstrapMaterialDesign(); });</script>
 
 <!-- jQuery UI -->
 <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
@@ -42,36 +51,27 @@
 </head>
 
 <body>
-<div id="header">
-  <div id="headercontents">
-    <span id="heading">Team Sidney Light Controller</span>
-    <span id="login" class="btn">Login</span>
-    <span id="userinfo">
+<div class="container" id="header">
+  <div class="row justify-content-between" id="headercontents">
+    <div class="col title">Team Sidney Light Controller</div>
+    <div class="col" id="userinfo">
+      <button type="button" class="btn btn-primary" id="login">Login</button>
       <span id="userphoto"></span>
-    </span>
+    </div>
   </div>
 </div>
-<div id="contents">
+<div class="container" id="contents">
   <div id="postlogin">
     <div id="dberror" class="errormsg"></div>
-    <div id="striplist"></div>
-    <div id="log"></div>
+    <div id="striplist" class="listgroup"></div>
+    <div id="log" class="listgroup"></div>
     <div id="controls" class="controls">
-      <span id="addStrip" class="btn">+</span>
+      <button type="button" class="btn btn-primary bmd-btn-fab" id="addStrip">
+        <i class="material-icons">add</i>
+      </button>
     </div>
   </div>
 </div>
-
-    <div id="addStripDialog" title="Add strip">
-      <form>
-        <fieldset>
-          <label for="macAddress">MAC address</label>
-          <input type="text" name="macAddress" id="macAddress" value="00:00:00:00:00:00" class="text ui-widget-content ui-corner-all">
-          <label for="name">name</label>
-          <input type="text" name="name" id="name" value="strip1" class="text ui-widget-content ui-corner-all">
-        </fieldset>
-      </form>
-    </div>
 
 <script src="main.js"></script>
 </body>

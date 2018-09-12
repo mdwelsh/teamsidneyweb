@@ -20,7 +20,7 @@ var totalPoints = null;
 
 // Initialize click handlers.
 $('#login').off('click');
-$('#login').button().click(doLogin);
+$('#login').click(doLogin);
 $('#userinfo').off('click');
 $('#userinfo').click(logout);
 
@@ -74,7 +74,7 @@ function showError(elem, msg) {
 // Show the login button.
 function showLoginButton() {
   $('#postlogin').hide();
-  $('#userinfo').hide();
+  $('#userphoto').hide();
   $('#login').show();
 }
 
@@ -101,7 +101,7 @@ function showFullUI() {
   $('#login').hide();
   $('#userphoto')
      .html("<img class='userphoto' src='" + currentUser().photoURL + "'>");
-  $('#userinfo').show();
+  $('#userphoto').show();
 
   $('#postlogin').hide('blind');
 
@@ -130,7 +130,7 @@ function showFullUI() {
   });
  
   $("#addStrip").off('click');
-  $("#addStrip").button().on('click', function() {
+  $("#addStrip").on('click', function() {
     dialog.dialog("open");
   });
 
@@ -158,28 +158,80 @@ function addStrip(id) {
 
   var container = $('#striplist');
   var strip = $('<div/>')
+    .addClass('card')
+    .addClass('list-group-item')
     .attr('id', 'stripline-strip-'+id)
-    .addClass('strip-line')
     .appendTo(container);
-  $('<span/>')
-    .addClass('strip-id')
+  var cardbody = $('<div/>')
+    .addClass('card-body')
+    .appendTo(strip);
+  $('<h5/>')
+    .addClass('card-title')
     .text(id)
-    .appendTo(strip);
-  $('<span/>')
-    .addClass('strip-status')
-    .text('---')
-    .appendTo(strip);
-  var ss = $('<select/>')
-    .addClass('strip-select')
-    .attr('id', 'strip-'+id)
-    .appendTo(strip);
-  $('<option/>')
-    .text('Off')
-    .appendTo(ss);
-  $('<option/>')
-    .text('Fire')
-    .appendTo(ss);
+    .appendTo(cardbody);
+  $('<h4/>')
+    .addClass('card-subtitle')
+    .addClass('mb-2')
+    .addClass('text-muted')
+    .text('unknown')
+    .appendTo(cardbody);
 
+  // Button group.
+  var bg = $('<div/>')
+    .addClass('btn-group')
+    .attr('role', 'group')
+    .appendTo(cardbody);
+
+  // Dropdown as part of button group.
+  var dd = $('<div/>')
+    .addClass('btn-group')
+    .attr('role', 'group')
+    .appendTo(bg);
+
+  // Dropdown button itself.
+  var ddt = $('<button/>')
+    .attr('id', 'stripline-strip-'+id+'-dd')
+    .attr('type', 'button')
+    .addClass('btn')
+    .addClass('btn-secondary')
+    .addClass('dropdown-toggle')
+    .attr('data-toggle', 'dropdown')
+    .attr('aria-haspopup', 'true')
+    .attr('aria-expanded', 'false')
+    .text('Mode')
+    .appendTo(dd);
+
+  var ddm = $('<div/>')
+    .addClass('dropdown-menu')
+    .attr('aria-labelledby', 'stripline-strip-'+id+'-dd')
+    .appendTo(dd);
+  $('<a/>')
+    .addClass('dropdown-item')
+    .attr('href', '#')
+    .text('Off')
+    .appendTo(ddm);
+  $('<a/>')
+    .addClass('dropdown-item')
+    .attr('href', '#')
+    .text('Fire')
+    .appendTo(ddm);
+
+  $('<button/>')
+    .attr('type', 'button')
+    .addClass('btn')
+    .addClass('btn-secondary')
+    .addClass('material-icons')
+    .text('refresh')
+    .appendTo(bg);
+
+  $('<button/>')
+    .attr('type', 'button')
+    .addClass('btn')
+    .addClass('btn-secondary')
+    .addClass('material-icons')
+    .text('delete')
+    .appendTo(bg);
+    
   // Get database ref.
   var stripRef = firebase.database().ref('strips/' + id);
 
@@ -192,7 +244,7 @@ function addStrip(id) {
   };
   allStrips['strip-'+id] = stripState;
 
-  ss.change(selectorChanged);
+  //ss.change(selectorChanged);
   stripRef.on('value', stripUpdated, dbErrorCallback);
 }
 

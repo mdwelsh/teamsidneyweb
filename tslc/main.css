@@ -2,29 +2,23 @@
 /* https://coolors.co/eeeeff-7f7caf-9fb4c7-28587b-9fb798 */
 
 body {
-  background-color: #202020;
+/*  background-color: #202020;
   font-size: 20px;
+  */
 }
 
 #header {
-  position: fixed; 
   border-bottom: 1px solid #a08080;
-  background: #404040;
-  top: 0; 
-  left: 0; 
-  z-index: 2000; 
-  width: 100%;
 }
 
 #headercontents {
   padding: 10px 20px;
-  font-family: Varela Round;
-  display: flex;
-  justify-content: space-between;
 }
 
-#contents {
-  margin-top: 100px;
+.title {
+  font-family: Varela Round;
+  font-weight: bold;
+  font-size: 20px;
 }
 
 .controls {
@@ -43,15 +37,7 @@ body {
 #login {
   height: 100%;
   padding: 10px;
-}
-
-.btn {
-  border-radius: 28px;
-  font-family: Varela Round;
-  color: #ffffff;
-  font-size: 20px;
-  background: #285b7b;
-  text-decoration: none;
+  float: right;
 }
 
 .circled {
@@ -87,6 +73,7 @@ body {
   border-radius: 50%;
   margin: 0 auto;
   height: 60px;
+  float: right;
 }
 
 #smallts {
@@ -109,11 +96,6 @@ body {
   font-size: 50px;
   font-family: Roboto;
   text-align: center;
-}
-
-.fade-btn {
-  color: #909090;
-  border: 3px solid #909090;
 }
 
 #log {
@@ -153,24 +135,28 @@ body {
 }
 
 .strip-id {
-  font-family: Varela Round;
+/*  font-family: Varela Round;
   color: #ffffff;
   font-size: 20px;
   padding: 10px;
+  */
 }
 
 .strip-status {
-  font-family: Roboto;
+/*  font-family: Roboto;
   color: #808080;
   font-size: 12px;
+  */
 }
 
 .strip-select {
   float: right;
+/*
   font-family: Varela Round;
   color: #ffffff;
   font-size: 20px;
   background: #606060;
+  */
   text-decoration: none;
   width: 100px;
   height: 100%;
