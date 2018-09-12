@@ -169,12 +169,49 @@ function addStrip(id) {
     .addClass('card-title')
     .text(id)
     .appendTo(cardbody);
-  $('<h4/>')
-    .addClass('card-subtitle')
-    .addClass('mb-2')
-    .addClass('text-muted')
-    .text('unknown')
+
+  var tbl = $('<table/>')
+    .addClass('table')
+    .addClass('table-sm')
     .appendTo(cardbody);
+  var tbody = $('<tbody/>')
+    .appendTo(tbl);
+
+  var r0 = $('<tr/>')
+    .appendTo(tbody);
+  $('<td/>')
+    .text('Current mode')
+    .appendTo(r0);
+  $('<td/>')
+    .text('unknown')
+    .appendTo(r0);
+  
+  var r1 = $('<tr/>')
+    .appendTo(tbody);
+  $('<td/>')
+    .text('Last checkin')
+    .appendTo(r1);
+  $('<td/>')
+    .text('unknown')
+    .appendTo(r1);
+
+  var r2 = $('<tr/>')
+    .appendTo(tbody);
+  $('<td/>')
+    .text('MAC address')
+    .appendTo(r2);
+  $('<td/>')
+    .text('xx:xx:xx:xx:xx:xx')
+    .appendTo(r2);
+
+  var r3 = $('<tr/>')
+    .appendTo(tbody);
+  $('<td/>')
+    .text('IP address')
+    .appendTo(r3);
+  $('<td/>')
+    .text('127.0.0.1')
+    .appendTo(r3);
 
   // Button group.
   var bg = $('<div/>')
@@ -243,6 +280,8 @@ function addStrip(id) {
     ref: stripRef,
   };
   allStrips['strip-'+id] = stripState;
+
+  // XXX TODO(mdw) - Add code to deal with mode change
 
   //ss.change(selectorChanged);
   stripRef.on('value', stripUpdated, dbErrorCallback);
