@@ -34,6 +34,14 @@ body {
   font-size: 12px;
 }
 
+.pending {
+  color: blue;
+}
+
+.logo {
+  height: 20px;
+}
+
 #login {
   height: 100%;
   padding: 10px;

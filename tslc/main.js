@@ -18,6 +18,8 @@ var fakeUser = null;
 
 var totalPoints = null;
 
+var allmodes = [ 'off', 'wipered', 'wipeblue', 'wipegreen', 'rainbow', 'rainbowcycle' ];
+
 // Initialize click handlers.
 $('#login').off('click');
 $('#login').click(doLogin);
@@ -37,6 +39,10 @@ function setup() {
 
   } else {
     showFullUI();
+
+    checkinRef = firebase.database().ref('checkin/');
+    checkinRef.on('child_added', stripCheckin, dbErrorCallback);
+    checkinRef.on('child_changed', stripCheckin, dbErrorCallback);
 
     logRef = firebase.database().ref('log/');
     logRef.on('child_added', newLogEntry, dbErrorCallback);
@@ -105,40 +111,8 @@ function showFullUI() {
 
   $('#postlogin').hide('blind');
 
-  // Populate main content.
-  
-  var dialog = $("#addStripDialog" ).dialog({
-    autoOpen: false,
-    height: 400,
-    width: 350,
-    modal: true,
-    buttons: {
-      "Add": addStripDone,
-      Cancel: function() {
-        dialog.dialog( "close" );
-      }
-    },
-    close: function() {
-      form[ 0 ].reset();
-      //allFields.removeClass( "ui-state-error" );
-    }
-  });
-
-  var form = dialog.find("form").on("submit", function(event) {
-    event.preventDefault();
-    addStripDone();
-  });
- 
-  $("#addStrip").off('click');
-  $("#addStrip").on('click', function() {
-    dialog.dialog("open");
-  });
-
   $("#log").empty();
   $("#striplist").empty();
-  addStrip("strip1");
-  addStrip("strip2");
-  addStrip("strip3");
 
   // Show it.
   $('#postlogin').show('fade', 1000);
@@ -147,15 +121,37 @@ function showFullUI() {
 // Mapping from strip-ID to object maintaining strip state.
 var allStrips = {};
 
-// Callback invoked when add strip dialog completes.
-function addStripDone() {
-  console.log("addStripDone called");
+// Callback invoked when database returns new value for a strip.
+function stripCheckin(snapshot) {
+  var stripid = snapshot.key;
+  updateStrip(stripid, snapshot.val());
 }
 
-// Add a new strip with the given ID.
-function addStrip(id) {
-  console.log("addStrip called");
+// Update the given strip with the given data.
+function updateStrip(id, stripdata) {
+  var strip = allStrips[id];
+  if (strip == null) {
+    // This is a new strip.
+    strip = createStrip(id);
+    if (strip == null) {
+      console.log('Bug - Unable to create strip ' + id);
+      return;
+    }
+  }
 
+  var e = strip.stripElem;
+  $(e).effect('highlight');
+  $(e).find('#mode').text(stripdata.mode);
+
+  $(e).find('#ip').text(stripdata.ip);
+  var d = new Date(stripdata.timestamp);
+  var m = new moment(d);
+  dateString = m.fromNow();
+  $(e).find('#checkin').text(dateString);
+}
+
+// Create a strip with the given ID.
+function createStrip(id) {
   var container = $('#striplist');
   var strip = $('<div/>')
     .addClass('card')
@@ -183,6 +179,17 @@ function addStrip(id) {
     .text('Current mode')
     .appendTo(r0);
   $('<td/>')
+    .attr('id', 'curMode')
+    .text('unknown')
+    .appendTo(r0);
+
+  r0 = $('<tr/>')
+    .appendTo(tbody);
+  $('<td/>')
+    .text('Next mode')
+    .appendTo(r0);
+  $('<td/>')
+    .attr('id', 'nextMode')
     .text('unknown')
     .appendTo(r0);
   
@@ -192,6 +199,7 @@ function addStrip(id) {
     .text('Last checkin')
     .appendTo(r1);
   $('<td/>')
+    .attr('id', 'checkin')
     .text('unknown')
     .appendTo(r1);
 
@@ -201,7 +209,8 @@ function addStrip(id) {
     .text('MAC address')
     .appendTo(r2);
   $('<td/>')
-    .text('xx:xx:xx:xx:xx:xx')
+    .attr('id', 'mac')
+    .text(id)
     .appendTo(r2);
 
   var r3 = $('<tr/>')
@@ -210,7 +219,8 @@ function addStrip(id) {
     .text('IP address')
     .appendTo(r3);
   $('<td/>')
-    .text('127.0.0.1')
+    .attr('id', 'ip')
+    .text('unknown')
     .appendTo(r3);
 
   // Button group.
@@ -242,16 +252,18 @@ function addStrip(id) {
     .addClass('dropdown-menu')
     .attr('aria-labelledby', 'stripline-strip-'+id+'-dd')
     .appendTo(dd);
-  $('<a/>')
-    .addClass('dropdown-item')
-    .attr('href', '#')
-    .text('Off')
-    .appendTo(ddm);
-  $('<a/>')
-    .addClass('dropdown-item')
-    .attr('href', '#')
-    .text('Fire')
-    .appendTo(ddm);
+
+  // Add the modes.
+  allmodes.forEach(function(mode) {
+    $('<a/>')
+      .addClass('dropdown-item')
+      .attr('href', '#')
+      .text(mode)
+      .click(function() {
+        setMode(id, mode)
+      })
+      .appendTo(ddm);
+  });
 
   $('<button/>')
     .attr('type', 'button')
@@ -268,52 +280,44 @@ function addStrip(id) {
     .addClass('material-icons')
     .text('delete')
     .appendTo(bg);
-    
-  // Get database ref.
-  var stripRef = firebase.database().ref('strips/' + id);
 
+  var dbRef = firebase.database().ref('strips/' + id);
+  dbRef.on('child_added', nextModeUpdate, dbErrorCallback);
+  dbRef.on('child_changed', nextModeUpdate, dbErrorCallback);
   var stripState = {
     id: id,
-    val: null,
-    lastCheckin: null,
     stripElem: strip,
-    ref: stripRef,
+    dbRef: dbRef,
   };
-  allStrips['strip-'+id] = stripState;
-
-  // XXX TODO(mdw) - Add code to deal with mode change
-
-  //ss.change(selectorChanged);
-  stripRef.on('value', stripUpdated, dbErrorCallback);
+  allStrips[id] = stripState;
+  
+  return stripState;
 }
 
-// Callback invoked when database returns new value for a strip.
-function stripUpdated(snapshot) {
-  var stripid = "strip-" + snapshot.key;
+// Callback invoked when strip's next mode has changed from the DB.
+function nextModeUpdate(snapshot) {
+  var stripid = snapshot.key;
+  var nextMode = snapshot.val();
   var strip = allStrips[stripid];
   if (strip == null) {
-    return;
+    strip = createStrip(stripid);
   }
-  $('#' + stripid).val(snapshot.val());
-}
+  var e = strip.stripElem;
+  $(e).find('#nextMode').text(value);
+  $(e).find('#nextMode').effect('highlight');
 
-// Callback invoked when selector for a strip has changed.
-function selectorChanged(event) {
-  var stripid = event.target.id;
-  var value = event.target.value;
-  $('#stripline-' + stripid).effect('highlight');
-  setStripValue(stripid, value);
 }
 
 // Set a given strip to the given value.
-function setStripValue(stripid, value) {
+function setMode(stripid, value) {
+  console.log('Setting mode of ' + stripid + ' to ' + value);
   var strip = allStrips[stripid];
   if (strip == null) {
     return;
   }
 
   // Write current state to the database.
-  strip.ref.set(value)
+  strip.dbRef.set(value)
     .then(function() {
       addLogEntry('set ' + strip.id + ' to ' + value);
       $('#' + stripid).val(value);
@@ -322,32 +326,10 @@ function setStripValue(stripid, value) {
       showError($('#dberror'), error.message);
     });
 
-  // XXX MDW - The following is just for testing.
-  stripCheckin(stripid);
-}
-
-// Callback invoked when a given strip checks in.
-function stripCheckin(stripid) {
-  var strip = allStrips[stripid];
-  if (strip == null) {
-    addStrip(stripid);
-  }
-  var d = new Date();
-  strip.lastCheckin = d;
-  updateAllStripStatus();
-}
-
-// Update the last checkin status of all strips.
-function updateAllStripStatus() {
-  $.each(allStrips, function(index, elem) {
-    var d = elem.lastCheckin;
-    var dateString = 'never';
-    if (d != null) {
-      var m = new moment(d);
-      dateString = m.fromNow();
-    }
-    $(elem.stripElem).find('.strip-status').text(dateString);
-  });
+  // Update UI with pending indicator.
+  var e = strip.stripElem;
+  $(e).find('#nextMode').text(value);
+  $(e).find('#nextMode').effect('highlight');
 }
 
 // Add a new log entry to the database.
@@ -375,7 +357,7 @@ function newLogEntry(snapshot, preChildKey) {
 // Show a log entry.
 function showLogEntry(date, name, text) {
   var container = $('#log');
-  var line = $('<div/>').addClass('log-line').appendTo(container);
+  var line = $('<div/>').addClass('log-line').prependTo(container);
 
   // Log entry.
   var entry = $('<div/>').addClass('log-line-entry').appendTo(line);
