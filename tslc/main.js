@@ -16,17 +16,28 @@ var SIDNEY_PHOTO = "http://howtoprof.com/profsidney.jpg";
 var provider = new firebase.auth.GoogleAuthProvider();
 var fakeUser = null;
 
-var totalPoints = null;
+// Mapping from strip-ID to object maintaining strip state.
+var allStrips = {};
 
-var allmodes = [ 'off', 'wipered', 'wipeblue', 'wipegreen', 'rainbow', 'rainbowcycle' ];
+// List of supported modes.
+var allmodes = [
+  'off',
+  'none',
+  'wipered',
+  'wipeblue',
+  'wipegreen',
+  'rainbow',
+  'rainbowcycle',
+];
+
+// Reference to log DB entry.
+var logRef = null;
 
 // Initialize click handlers.
 $('#login').off('click');
 $('#login').click(doLogin);
 $('#userinfo').off('click');
 $('#userinfo').click(logout);
-
-var logRef = null;
 
 setup();
 
@@ -118,9 +129,6 @@ function showFullUI() {
   $('#postlogin').show('fade', 1000);
 }
 
-// Mapping from strip-ID to object maintaining strip state.
-var allStrips = {};
-
 // Callback invoked when database returns new value for a strip.
 function stripCheckin(snapshot) {
   var stripid = snapshot.key;
@@ -139,14 +147,17 @@ function updateStrip(id, stripdata) {
     }
   }
 
+  strip.curMode = stripdata.mode;
+  strip.ip = stripdata.ip;
+  strip.lastCheckin = new Date(stripdata.timestamp);
+
   var e = strip.stripElem;
   $(e).effect('highlight');
-  $(e).find('#mode').text(stripdata.mode);
+  $(e).find('#curMode').text(stripdata.mode);
 
   $(e).find('#ip').text(stripdata.ip);
-  var d = new Date(stripdata.timestamp);
-  var m = new moment(d);
-  dateString = m.fromNow();
+  var m = new moment(strip.lastCheckin);
+  dateString = m.format('MMM DD, h:mm:ss a') + ' (' + m.fromNow() + ')';
   $(e).find('#checkin').text(dateString);
 }
 
@@ -188,10 +199,17 @@ function createStrip(id) {
   $('<td/>')
     .text('Next mode')
     .appendTo(r0);
-  $('<td/>')
+  var nme = $('<td/>')
+    .appendTo(r0);
+  $('<span/>')
     .attr('id', 'nextMode')
     .text('unknown')
-    .appendTo(r0);
+    .appendTo(nme);
+  $('<span/>')
+    .attr('id', 'loader')
+    .css('position', 'relative')
+    .addClass('spinner')
+    .appendTo(nme);
   
   var r1 = $('<tr/>')
     .appendTo(tbody);
@@ -281,13 +299,15 @@ function createStrip(id) {
     .text('delete')
     .appendTo(bg);
 
+  console.log('Registering database ref for strip ' + id);
   var dbRef = firebase.database().ref('strips/' + id);
-  dbRef.on('child_added', nextModeUpdate, dbErrorCallback);
-  dbRef.on('child_changed', nextModeUpdate, dbErrorCallback);
+  dbRef.on('value', nextModeUpdate, dbErrorCallback);
   var stripState = {
     id: id,
     stripElem: strip,
     dbRef: dbRef,
+    nextMode: 'unknown',
+    curMode: 'rainbow',
   };
   allStrips[id] = stripState;
   
@@ -296,16 +316,28 @@ function createStrip(id) {
 
 // Callback invoked when strip's next mode has changed from the DB.
 function nextModeUpdate(snapshot) {
+  console.log('nextModeUpdate for key ' + snapshot.key);
   var stripid = snapshot.key;
   var nextMode = snapshot.val();
   var strip = allStrips[stripid];
   if (strip == null) {
-    strip = createStrip(stripid);
+    console.log('nextModeUpdate bailing out as strip is not known yet: ' + stripid);
+    return;
   }
   var e = strip.stripElem;
-  $(e).find('#nextMode').text(value);
-  $(e).find('#nextMode').effect('highlight');
-
+  strip.nextMode = nextMode;
+  var nme = $(e).find("#nextMode");
+  nme.text(nextMode);
+  console.log(strip.nextMode);
+  console.log(strip.curMode);
+  if (strip.nextMode != strip.curMode) {
+    console.log('Showing loader')
+    $(nme).find("#loader").show();
+  } else {
+    console.log('Hiding loader')
+    $(nme).find("#loader").hide();
+  }
+  nme.effect('highlight');
 }
 
 // Set a given strip to the given value.
@@ -327,9 +359,9 @@ function setMode(stripid, value) {
     });
 
   // Update UI with pending indicator.
-  var e = strip.stripElem;
-  $(e).find('#nextMode').text(value);
-  $(e).find('#nextMode').effect('highlight');
+//  var e = strip.stripElem;
+//  $(e).find('#nextMode').text(value);
+//  $(e).find('#nextMode').effect('highlight');
 }
 
 // Add a new log entry to the database.
