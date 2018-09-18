@@ -331,11 +331,9 @@ function nextModeUpdate(snapshot) {
   console.log(strip.nextMode);
   console.log(strip.curMode);
   if (strip.nextMode != strip.curMode) {
-    console.log('Showing loader')
-    $(nme).find("#loader").show();
+    $(e).find("#loader").show();
   } else {
-    console.log('Hiding loader')
-    $(nme).find("#loader").hide();
+    $(e).find("#loader").hide();
   }
   nme.effect('highlight');
 }
