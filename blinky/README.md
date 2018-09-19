@@ -1,7 +1,7 @@
-# Team Sidney Light Controller
+# Blinky -- Team Sidney Light Controller
 
 TODO:
-* Make hiding loader work correctly.
+* Support new config API on the Arduino side.
 * Make sure Feathers keep checking in.
 * Direct ping via IP.
 * Bluetooth synchronization?
