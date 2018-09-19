@@ -79,18 +79,25 @@
 </div>
 
 <!-- Strip editor dialog modal -->
-<div class="modal fade" id="editor" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="editor" tabindex="-1" role="dialog">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="editorTitle"></h5>
+        <h5 class="modal-title" id="editorTitle">
+          Edit strip <span id="editorStripId"></span>
+        </h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true" class="material-icons">close</span>
         </button>
       </div>
       <!-- Editor body -->
       <div class="modal-body" id="editorBody">
-        <div id="editorMode"></div>
+        <div id="editorMode">
+          <div class="form-group">
+            <label for="editorModeSelect">Set mode</label>
+            <select class="form-control" id="editorModeSelect"></select>
+          </div>
+        </div>
         <div id="editorSpeed">
           <div>Speed</div>
           <div id="editorSpeedSlider"></div>
@@ -109,7 +116,30 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
+        <button id="editorSave" type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete strip dialog modal -->
+<div class="modal fade" id="deleteStrip" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteStripTitle">
+          Delete strip <span id="deleteStripId"></span>
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true" class="material-icons">close</span>
+        </button>
+      </div>
+      <!-- Delete strip body -->
+      <div class="modal-body" id="deleteStripBody">
+        Are you sure you want to delete this strip?
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button id="deleteStripConfirm" type="button" class="btn btn-danger">Delete</button>
       </div>
     </div>
   </div>

@@ -22,16 +22,13 @@ var allStrips = {};
 // List of supported modes.
 var allmodes = [
   'off',
-  'none',
-  'wipered',
-  'wipeblue',
-  'wipegreen',
-  'theaterOrange',
+  'wipe',
+  'theater',
+  'bounce',
   'rainbow',
   'rainbowcycle',
   'spackle',
   'fire',
-  'bounce',
 ];
 
 // Reference to log DB entry.
@@ -47,59 +44,16 @@ initEditor();
 setup();
 
 function initEditor() {
-  console.log('initEditor called');
   var editor = $("#editorMode");
 
-  // Try using a select.
-  var select = $('<select/>')
-    .appendTo(editor);
-
-  // Add the modes.
+  // Populate mode dropdown.
+  var select = $("#editorModeSelect");
   allmodes.forEach(function(mode) {
     $('<option/>')
       .text(mode)
-      .click(function() {
-        setMode(id, mode)
-      })
       .appendTo(select);
   });
   
-  // Dropdown as part of editor.
-  var dd = $('<div/>')
-    .addClass('btn-group')
-    .attr('role', 'group')
-    .appendTo(editor);
-
-  // Dropdown button itself.
-  var ddt = $('<button/>')
-    .attr('id', 'editor-mode-button')
-    .attr('type', 'button')
-    .addClass('btn')
-    .addClass('btn-secondary')
-    .addClass('dropdown-toggle')
-    .attr('data-toggle', 'dropdown')
-    .attr('aria-haspopup', 'true')
-    .attr('aria-expanded', 'false')
-    .text('Mode')
-    .appendTo(dd);
-
-  var ddm = $('<div/>')
-    .addClass('dropdown-menu')
-    .attr('aria-labelledby', 'editor-mode-button')
-    .appendTo(dd);
-
-  // Add the modes.
-  allmodes.forEach(function(mode) {
-    $('<a/>')
-      .addClass('dropdown-item')
-      .attr('href', '#')
-      .text(mode)
-      .click(function() {
-        setMode(id, mode)
-      })
-      .appendTo(ddm);
-  });
-
   // Fix up UI components for the rest of the editor.
   $("#editorSpeedSlider").slider({
     orientation: "horizontal",
@@ -121,9 +75,86 @@ function initEditor() {
     slide: refreshSwatch,
     change: refreshSwatch
   });
-  $("#red").slider("value", 255);
-  $("#green").slider("value", 140);
-  $("#blue").slider("value", 60);
+
+  // Handle editor completion.
+  $('#editorSave').click(function (e) {
+    console.log('Editor save clicked');
+    $("#editor").modal('hide');
+    editStripDone();
+  });
+
+  // Handle deletion completion.
+  $('#deleteStripConfirm').click(function (e) {
+    $("#deleteStrip").modal('hide');
+    deleteStripDone();
+  });
+}
+
+// Called when editor opened for a strip.
+function editStripStart(id) {
+  console.log('editStripStart: ' + id);
+  var strip = allStrips[id];
+  if (strip == null) {
+    console.log("Warning - editing unknown strip " + id);
+    return;
+  }
+  $("#editorStripId").text(id);
+
+  // Prefer initializing dialog to nextConfig if it exists, otherwise
+  // fall back to curConfig.
+  var config = null;
+  if (strip.nextConfig == null) {
+    if (strip.curConfig == null) {
+      console.log("Warning - no cur or next config for strip yet: " + id);
+      return;
+    } else {
+      console.log("Using cur config");
+      config = strip.curConfig;
+    }
+  } else {
+    console.log("Using next config");
+    config = strip.nextConfig;
+  }
+  console.log(config);
+
+  if (config.mode == null || config.speed == null || config.brightness == null) {
+    return;
+  }
+
+  $("#editorModeSelect").val(config.mode);
+  $("#editorSpeedSlider").slider("value", config.speed);
+  $("#editorBrightnessSlider").slider("value", config.brightness);
+  $("#red").slider("value", config.red);
+  $("#green").slider("value", config.green);
+  $("#blue").slider("value", config.blue);
+}
+
+// Called when editing done.
+function editStripDone() {
+  var id = $("#editorStripId").text();
+  var strip = allStrips[id];
+  if (strip == null) {
+    console.log("Can't edit unknown strip: " + id);
+    return;
+  }
+
+  // Extract values from modal.
+  var mode = $("#editorModeSelect").find(':selected').text();
+  var speed = $("#editorSpeedSlider").slider("value");
+  var brightness = $("#editorBrightnessSlider").slider("value");
+  var red = $("#red").slider("value");
+  var green = $("#green").slider("value");
+  var blue = $("#blue").slider("value");
+  var newConfig = {
+    mode: mode,
+    speed: speed,
+    brightness: brightness,
+    red: red,
+    green: green,
+    blue: blue,
+  };
+  console.log('New config: ' + JSON.stringify(newConfig));
+  setConfig(id, newConfig);
 }
 
 // Color picker.
@@ -239,11 +270,12 @@ function showFullUI() {
 
 // Callback invoked when database returns new value for a strip.
 function stripCheckin(snapshot) {
+  console.log('Strip checkin with key ' + snapshot.key);
   var stripid = snapshot.key;
   updateStrip(stripid, snapshot.val());
 }
 
-// Update the given strip with the given data.
+// Update the local strip state with the received data.
 function updateStrip(id, stripdata) {
   console.log('updateStrip for ' + id);
   console.log(stripdata);
@@ -258,21 +290,26 @@ function updateStrip(id, stripdata) {
     }
   }
 
-  strip.curMode = stripdata.mode;
-  console.log("Setting strip mode to: " + strip.curMode);
+  // Update local state.
+  console.log("Setting strip config to: " + JSON.stringify(stripdata.config));
+  strip.curConfig = stripdata.config;
   strip.ip = stripdata.ip;
   strip.lastCheckin = new Date(stripdata.timestamp);
 
+  // Now update the UI.
   var e = strip.stripElem;
   $(e).effect('highlight');
-  $(e).find('#curMode').text(stripdata.mode);
 
-  if (strip.nextMode != strip.curMode) {
-    console.log('No match');
-    $(e).find("#loader").show();
+  var mode = "unknown";
+  if (stripdata.config != null && stripdata.config.mode != null) {
+    mode = stripdata.config.mode;
+  }
+  $(e).find('#curMode').text(mode);
+
+  if (JSON.stringify(strip.curConfig) === JSON.stringify(strip.nextConfig)) {
+    $(e).find("#nextMode").removeClass('pending');
   } else {
-    console.log('Match, hiding spinner');
-    $(e).find("#loader").hide();
+    $(e).find("#nextMode").addClass('pending');
   }
 
   $(e).find('#ip').text(stripdata.ip);
@@ -283,26 +320,71 @@ function updateStrip(id, stripdata) {
 
 // Create a strip with the given ID.
 function createStrip(id) {
+  console.log('Creating strip ' + id);
+
+  console.log('Registering database ref for strip ' + id);
+  var dbRef = firebase.database().ref('strips/' + id);
+  dbRef.on('value', configUpdate, dbErrorCallback);
+
+  var strip = {
+    id: id,
+    stripElem: strip,
+    dbRef: dbRef,
+    curConfig: {
+      mode: "unknown",
+    },
+    nextConfig: {
+      mode: "unknown",
+    },
+  };
+  allStrips[id] = strip;
+
   var container = $('#striplist');
-  var strip = $('<div/>')
+  strip.stripElem = $('<div/>')
     .addClass('card')
     .addClass('list-group-item')
     .attr('id', 'stripline-strip-'+id)
     .appendTo(container);
   var cardbody = $('<div/>')
     .addClass('card-body')
-    .appendTo(strip);
+    .appendTo(strip.stripElem);
   $('<h5/>')
     .addClass('card-title')
     .text(id)
     .appendTo(cardbody);
 
+  // Status area.
+  var statusArea = $('<div/>')
+    .addClass('container')
+    .appendTo(cardbody);
+
   var tbl = $('<table/>')
     .addClass('table')
     .addClass('table-sm')
-    .appendTo(cardbody);
+    .appendTo(statusArea);
+
   var tbody = $('<tbody/>')
     .appendTo(tbl);
+
+  r0 = $('<tr/>')
+    .appendTo(tbody);
+  $('<td/>')
+    .text('Last checkin')
+    .appendTo(r0);
+  $('<td/>')
+    .attr('id', 'checkin')
+    .text('unknown')
+    .appendTo(r0);
+
+  r0 = $('<tr/>')
+    .appendTo(tbody);
+  $('<td/>')
+    .text('IP address')
+    .appendTo(r0);
+  $('<td/>')
+    .attr('id', 'ip')
+    .text('unknown')
+    .appendTo(r0);
 
   var r0 = $('<tr/>')
     .appendTo(tbody);
@@ -325,44 +407,10 @@ function createStrip(id) {
     .attr('id', 'nextMode')
     .text('unknown')
     .appendTo(nme);
-  $('<span/>')
-    .attr('id', 'loader')
-    .css('position', 'relative')
-    .addClass('spinner')
-    .appendTo(nme);
-  
-  var r1 = $('<tr/>')
-    .appendTo(tbody);
-  $('<td/>')
-    .text('Last checkin')
-    .appendTo(r1);
-  $('<td/>')
-    .attr('id', 'checkin')
-    .text('unknown')
-    .appendTo(r1);
-
-  var r2 = $('<tr/>')
-    .appendTo(tbody);
-  $('<td/>')
-    .text('MAC address')
-    .appendTo(r2);
-  $('<td/>')
-    .attr('id', 'mac')
-    .text(id)
-    .appendTo(r2);
-
-  var r3 = $('<tr/>')
-    .appendTo(tbody);
-  $('<td/>')
-    .text('IP address')
-    .appendTo(r3);
-  $('<td/>')
-    .attr('id', 'ip')
-    .text('unknown')
-    .appendTo(r3);
 
   // Button group.
   var bg = $('<div/>')
+    .addClass('container')
     .addClass('btn-group')
     .attr('role', 'group')
     .appendTo(cardbody);
@@ -378,7 +426,7 @@ function createStrip(id) {
     .addClass('btn-raised')
     .text('edit')
     .click(function() {
-      $("#editorTitle").text("Edit strip " + id);
+      editStripStart(id);
     })
     .appendTo(bg);
 
@@ -392,75 +440,103 @@ function createStrip(id) {
 
   $('<button/>')
     .attr('type', 'button')
+    .attr('data-toggle', 'modal')
+    .attr('data-target', '#deleteStrip')
+    .attr('aria-expanded', 'false')
+    .attr('aria-controls', 'deleteStrip')
     .addClass('btn')
     .addClass('btn-secondary')
     .addClass('material-icons')
     .text('delete')
+    .click(function() {
+      deleteStripStart(id);
+    })
     .appendTo(bg);
-
-  console.log('Registering database ref for strip ' + id);
-  var dbRef = firebase.database().ref('strips/' + id);
-  dbRef.on('value', nextModeUpdate, dbErrorCallback);
-  var stripState = {
-    id: id,
-    stripElem: strip,
-    dbRef: dbRef,
-    nextMode: 'unknown',
-    curMode: 'none',
-  };
-  allStrips[id] = stripState;
   
-  return stripState;
+  return strip;
 }
 
-// Callback invoked when strip's next mode has changed from the DB.
-function nextModeUpdate(snapshot) {
-  console.log('nextModeUpdate for key ' + snapshot.key);
+// Called when modal opened for deleting a strip.
+function deleteStripStart(id) {
+  $("#deleteStripId").text(id);
+}
+
+// Called when modal closed for deleting a strip.
+function deleteStripDone() {
+  var id = $("#deleteStripId").text();
+  var strip = allStrips[id];
+  if (strip == null) {
+    console.log("Can't delete unknown strip: " + id);
+    return;
+  }
+  deleteStrip(id);
+}
+
+function deleteStrip(id) {
+  console.log("Deleting strip: " + id);
+
+  var strip = allStrips[id];
+  if (strip == null) {
+    console.log('No such strip to delete: ' + id);
+    return;
+  }
+
+  // Remove checkin state.
+  cref = firebase.database().ref('checkin/' + id);
+  cref.remove()
+    .then(function() {
+      // Remove strip config state.
+      strip.dbRef.remove()
+        .then(function() {
+          document.getElementById("stripline-strip-"+id).remove();
+          allStrips[id] = null;
+          addLogEntry("deleted strip " + id);
+      });
+    });
+}
+
+// Callback invoked when strip's config has changed from the DB.
+function configUpdate(snapshot) {
+  console.log('configUpdate called for key ' + snapshot.key);
   var stripid = snapshot.key;
-  var nextMode = snapshot.val();
+  var nextConfig = snapshot.val();
   var strip = allStrips[stripid];
   if (strip == null) {
-    console.log('nextModeUpdate bailing out as strip is not known yet: ' + stripid);
+    console.log('configUpdate bailing out as strip is not known yet: ' + stripid);
     return;
   }
   var e = strip.stripElem;
-  strip.nextMode = nextMode;
+  strip.nextConfig = nextConfig;
   var nme = $(e).find("#nextMode");
-  nme.text(nextMode);
-  console.log(strip.nextMode);
-  console.log(strip.curMode);
-  if (strip.nextMode != strip.curMode) {
-    console.log('No match');
-    $(e).find("#loader").show();
+  $(nme).text(nextConfig.mode);
+  console.log('Next config:');
+  console.log(strip.nextConfig);
+  console.log('Current config:');
+  console.log(strip.curConfig);
+  if (JSON.stringify(strip.curConfig) === JSON.stringify(nextConfig)) {
+    $(nme).removeClass('pending');
   } else {
-    console.log('Match, hiding spinner');
-    $(e).find("#loader").hide();
+    $(nme).addClass('pending');
   }
-  nme.effect('highlight');
+  $(nme).effect('highlight');
 }
 
-// Set a given strip to the given value.
-function setMode(stripid, value) {
-  console.log('Setting mode of ' + stripid + ' to ' + value);
+// Set the strip's config in the database.
+function setConfig(stripid, config) {
+  console.log('Setting config of ' + stripid + ' to ' + JSON.stringify(config));
   var strip = allStrips[stripid];
   if (strip == null) {
     return;
   }
 
-  // Write current state to the database.
-  strip.dbRef.set(value)
+  // Write current config to the database.
+  strip.dbRef.set(config)
     .then(function() {
-      addLogEntry('set ' + strip.id + ' to ' + value);
-      $('#' + stripid).val(value);
+      addLogEntry('set ' + strip.id + ' to ' + JSON.stringify(config));
     })
     .catch(function(error) {
       showError($('#dberror'), error.message);
     });
-
-  // Update UI with pending indicator.
-//  var e = strip.stripElem;
-//  $(e).find('#nextMode').text(value);
-//  $(e).find('#nextMode').effect('highlight');
 }
 
 // Add a new log entry to the database.
