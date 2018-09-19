@@ -26,8 +26,12 @@ var allmodes = [
   'wipered',
   'wipeblue',
   'wipegreen',
+  'theaterOrange',
   'rainbow',
   'rainbowcycle',
+  'spackle',
+  'fire',
+  'bounce',
 ];
 
 // Reference to log DB entry.
@@ -39,7 +43,111 @@ $('#login').click(doLogin);
 $('#userinfo').off('click');
 $('#userinfo').click(logout);
 
+initEditor();
 setup();
+
+function initEditor() {
+  console.log('initEditor called');
+  var editor = $("#editorMode");
+
+  // Try using a select.
+  var select = $('<select/>')
+    .appendTo(editor);
+
+  // Add the modes.
+  allmodes.forEach(function(mode) {
+    $('<option/>')
+      .text(mode)
+      .click(function() {
+        setMode(id, mode)
+      })
+      .appendTo(select);
+  });
+  
+  // Dropdown as part of editor.
+  var dd = $('<div/>')
+    .addClass('btn-group')
+    .attr('role', 'group')
+    .appendTo(editor);
+
+  // Dropdown button itself.
+  var ddt = $('<button/>')
+    .attr('id', 'editor-mode-button')
+    .attr('type', 'button')
+    .addClass('btn')
+    .addClass('btn-secondary')
+    .addClass('dropdown-toggle')
+    .attr('data-toggle', 'dropdown')
+    .attr('aria-haspopup', 'true')
+    .attr('aria-expanded', 'false')
+    .text('Mode')
+    .appendTo(dd);
+
+  var ddm = $('<div/>')
+    .addClass('dropdown-menu')
+    .attr('aria-labelledby', 'editor-mode-button')
+    .appendTo(dd);
+
+  // Add the modes.
+  allmodes.forEach(function(mode) {
+    $('<a/>')
+      .addClass('dropdown-item')
+      .attr('href', '#')
+      .text(mode)
+      .click(function() {
+        setMode(id, mode)
+      })
+      .appendTo(ddm);
+  });
+
+  // Fix up UI components for the rest of the editor.
+  $("#editorSpeedSlider").slider({
+    orientation: "horizontal",
+    range: "min",
+    max: 100,
+    value: 20,
+  });
+  $("#editorBrightnessSlider").slider({
+    orientation: "horizontal",
+    range: "min",
+    max: 100,
+    value: 20,
+  });
+  $("#red, #green, #blue").slider({
+    orientation: "horizontal",
+    range: "min",
+    max: 255,
+    value: 127,
+    slide: refreshSwatch,
+    change: refreshSwatch
+  });
+  $("#red").slider("value", 255);
+  $("#green").slider("value", 140);
+  $("#blue").slider("value", 60);
+}
+
+// Color picker.
+function hexFromRGB(r, g, b) {
+  var hex = [
+    r.toString( 16 ),
+    g.toString( 16 ),
+    b.toString( 16 )
+  ];
+  $.each(hex, function( nr, val) {
+    if ( val.length === 1 ) {
+      hex[nr] = "0" + val;
+    }
+  });
+  return hex.join( "" ).toUpperCase();
+}
+
+function refreshSwatch() {
+  var red = $("#red").slider("value");
+  var green = $("#green").slider("value");
+  var blue = $("#blue").slider("value");
+  var hex = hexFromRGB(red, green, blue);
+  $("#swatch").css("background-color", "#" + hex);
+}
 
 // Set up initial UI elements.
 function setup() {
@@ -137,6 +245,9 @@ function stripCheckin(snapshot) {
 
 // Update the given strip with the given data.
 function updateStrip(id, stripdata) {
+  console.log('updateStrip for ' + id);
+  console.log(stripdata);
+
   var strip = allStrips[id];
   if (strip == null) {
     // This is a new strip.
@@ -148,12 +259,21 @@ function updateStrip(id, stripdata) {
   }
 
   strip.curMode = stripdata.mode;
+  console.log("Setting strip mode to: " + strip.curMode);
   strip.ip = stripdata.ip;
   strip.lastCheckin = new Date(stripdata.timestamp);
 
   var e = strip.stripElem;
   $(e).effect('highlight');
   $(e).find('#curMode').text(stripdata.mode);
+
+  if (strip.nextMode != strip.curMode) {
+    console.log('No match');
+    $(e).find("#loader").show();
+  } else {
+    console.log('Match, hiding spinner');
+    $(e).find("#loader").hide();
+  }
 
   $(e).find('#ip').text(stripdata.ip);
   var m = new moment(strip.lastCheckin);
@@ -247,41 +367,20 @@ function createStrip(id) {
     .attr('role', 'group')
     .appendTo(cardbody);
 
-  // Dropdown as part of button group.
-  var dd = $('<div/>')
-    .addClass('btn-group')
-    .attr('role', 'group')
-    .appendTo(bg);
-
-  // Dropdown button itself.
-  var ddt = $('<button/>')
-    .attr('id', 'stripline-strip-'+id+'-dd')
+  var edit = $('<button/>')
     .attr('type', 'button')
-    .addClass('btn')
-    .addClass('btn-secondary')
-    .addClass('dropdown-toggle')
-    .attr('data-toggle', 'dropdown')
-    .attr('aria-haspopup', 'true')
+    .attr('data-toggle', 'modal')
+    .attr('data-target', '#editor')
     .attr('aria-expanded', 'false')
-    .text('Mode')
-    .appendTo(dd);
-
-  var ddm = $('<div/>')
-    .addClass('dropdown-menu')
-    .attr('aria-labelledby', 'stripline-strip-'+id+'-dd')
-    .appendTo(dd);
-
-  // Add the modes.
-  allmodes.forEach(function(mode) {
-    $('<a/>')
-      .addClass('dropdown-item')
-      .attr('href', '#')
-      .text(mode)
-      .click(function() {
-        setMode(id, mode)
-      })
-      .appendTo(ddm);
-  });
+    .attr('aria-controls', 'editor')
+    .addClass('btn')
+    .addClass('btn-primary')
+    .addClass('btn-raised')
+    .text('edit')
+    .click(function() {
+      $("#editorTitle").text("Edit strip " + id);
+    })
+    .appendTo(bg);
 
   $('<button/>')
     .attr('type', 'button')
@@ -307,7 +406,7 @@ function createStrip(id) {
     stripElem: strip,
     dbRef: dbRef,
     nextMode: 'unknown',
-    curMode: 'rainbow',
+    curMode: 'none',
   };
   allStrips[id] = stripState;
   
@@ -331,8 +430,10 @@ function nextModeUpdate(snapshot) {
   console.log(strip.nextMode);
   console.log(strip.curMode);
   if (strip.nextMode != strip.curMode) {
+    console.log('No match');
     $(e).find("#loader").show();
   } else {
+    console.log('Match, hiding spinner');
     $(e).find("#loader").hide();
   }
   nme.effect('highlight');

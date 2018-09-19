@@ -16,6 +16,7 @@
 <link href='https://fonts.googleapis.com/css?family=Vast+Shadow' rel='stylesheet' type='text/css'>
 <link href='https://fonts.googleapis.com/css?family=Baloo+Da' rel='stylesheet' type='text/css'>
 <link href='https://fonts.googleapis.com/css?family=Amatic+SC:400,700' rel='stylesheet' type='text/css'>
+<link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
 
 <!-- Moment.js -->
 <script src="moment.min.js"></script>
@@ -56,7 +57,7 @@
 <div class="container" id="header">
   <div class="row justify-content-between" id="headercontents">
     <div class="col title">
-      <span><img height="70px" src="TSE-Logo-HexOnly.png"></img></span>
+      <span><img height="50px" src="blinky.png"></img> Blinky</span>
     </div>
     <div class="col" id="userinfo">
       <button type="button" class="btn btn-primary" id="login">Login</button>
@@ -73,6 +74,43 @@
       <button type="button" class="btn btn-primary bmd-btn-fab" id="addStrip">
         <i class="material-icons">add</i>
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- Strip editor dialog modal -->
+<div class="modal fade" id="editor" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editorTitle"></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true" class="material-icons">close</span>
+        </button>
+      </div>
+      <!-- Editor body -->
+      <div class="modal-body" id="editorBody">
+        <div id="editorMode"></div>
+        <div id="editorSpeed">
+          <div>Speed</div>
+          <div id="editorSpeedSlider"></div>
+        </div>
+        <div id="editorBrightness">
+          <div>Brightness</div>
+          <div id="editorBrightnessSlider"></div>
+        </div>
+        <div id="editorColor">
+          <div>Color</div>
+          <div id="red"></div>
+          <div id="green"></div>
+          <div id="blue"></div>
+          <div id="swatch" class="ui-widget-content ui-corner-all"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
     </div>
   </div>
 </div>

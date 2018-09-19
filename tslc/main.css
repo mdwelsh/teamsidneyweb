@@ -16,7 +16,7 @@ body {
 }
 
 .title {
-  font-family: Varela Round;
+  font-family: 'Press Start 2P', cursive;
   font-weight: bold;
   font-size: 20px;
 }
@@ -169,3 +169,26 @@ body {
   width: 100px;
   height: 100%;
 }
+
+/* Editor UI */
+#red, #green, #blue, #editorSpeedSlider, #editorBrightnessSlider {
+/*  float: left;
+  clear: left; */
+  width: 80%;
+  margin: 15px;
+}
+#swatch {
+  width: 80%;
+  height: 30px;
+  margin-top: 10px;
+  margin-left: 10px;
+  background-image: none;
+}
+#red .ui-slider-range { background: #ef2929; }
+#red .ui-slider-handle { border-color: #ef2929; }
+#green .ui-slider-range { background: #8ae234; }
+#green .ui-slider-handle { border-color: #8ae234; }
+#blue .ui-slider-range { background: #729fcf; }
+#blue .ui-slider-handle { border-color: #729fcf; }
+
+
