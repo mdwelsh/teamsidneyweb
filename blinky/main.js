@@ -275,7 +275,7 @@ function stripCheckin(snapshot) {
   updateStrip(stripid, snapshot.val());
 }
 
-// Update the local strip state with the received data.
+// Update the local strip state with the received data from checkin.
 function updateStrip(id, stripdata) {
   console.log('updateStrip for ' + id);
   console.log(stripdata);
@@ -304,7 +304,7 @@ function updateStrip(id, stripdata) {
   if (stripdata.config != null && stripdata.config.mode != null) {
     mode = stripdata.config.mode;
   }
-  $(e).find('#curMode').text(mode);
+  $(e).find('#curMode').text(configToString(stripdata.config));
 
   if (JSON.stringify(strip.curConfig) === JSON.stringify(strip.nextConfig)) {
     $(e).find("#nextMode").removeClass('pending');
@@ -389,7 +389,7 @@ function createStrip(id) {
   var r0 = $('<tr/>')
     .appendTo(tbody);
   $('<td/>')
-    .text('Current mode')
+    .text('Current config')
     .appendTo(r0);
   $('<td/>')
     .attr('id', 'curMode')
@@ -399,7 +399,7 @@ function createStrip(id) {
   r0 = $('<tr/>')
     .appendTo(tbody);
   $('<td/>')
-    .text('Next mode')
+    .text('Next config')
     .appendTo(r0);
   var nme = $('<td/>')
     .appendTo(r0);
@@ -495,6 +495,14 @@ function deleteStrip(id) {
     });
 }
 
+function configToString(config) {
+  var s = "mode: " + config.mode +
+    ", speed: " + config.speed +
+    ", bright: " + config.brightness +
+    ", color: (" + config.red + "," + config.green + "," + config.blue + ")";
+  return s;
+}
+
 // Callback invoked when strip's config has changed from the DB.
 function configUpdate(snapshot) {
   console.log('configUpdate called for key ' + snapshot.key);
@@ -508,7 +516,7 @@ function configUpdate(snapshot) {
   var e = strip.stripElem;
   strip.nextConfig = nextConfig;
   var nme = $(e).find("#nextMode");
-  $(nme).text(nextConfig.mode);
+  $(nme).text(configToString(nextConfig));
   console.log('Next config:');
   console.log(strip.nextConfig);
   console.log('Current config:');
