@@ -29,6 +29,7 @@ var allmodes = [
   'rainbowcycle',
   'spackle',
   'fire',
+  'strobe',
 ];
 
 // Reference to log DB entry.
@@ -58,13 +59,13 @@ function initEditor() {
   $("#editorSpeedSlider").slider({
     orientation: "horizontal",
     range: "min",
-    max: 100,
-    value: 20,
+    max: 1000,
+    value: 100,
   });
   $("#editorBrightnessSlider").slider({
     orientation: "horizontal",
     range: "min",
-    max: 100,
+    max: 255,
     value: 20,
   });
   $("#red, #green, #blue").slider({
@@ -75,6 +76,7 @@ function initEditor() {
     slide: refreshSwatch,
     change: refreshSwatch
   });
+  refreshSwatch();
 
   // Handle editor completion.
   $('#editorSave').click(function (e) {
