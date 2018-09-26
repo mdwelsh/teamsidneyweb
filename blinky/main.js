@@ -30,6 +30,8 @@ var allmodes = [
   'spackle',
   'fire',
   'strobe',
+  'rain',
+  'comet',
 ];
 
 // Reference to log DB entry.
@@ -59,14 +61,20 @@ function initEditor() {
   $("#editorSpeedSlider").slider({
     orientation: "horizontal",
     range: "min",
+    min: 0,
     max: 1000,
     value: 100,
+    slide: refreshSwatch,
+    change: refreshSwatch
   });
   $("#editorBrightnessSlider").slider({
     orientation: "horizontal",
     range: "min",
+    min: 255,
     max: 255,
     value: 20,
+    slide: refreshSwatch,
+    change: refreshSwatch
   });
   $("#red, #green, #blue").slider({
     orientation: "horizontal",
@@ -180,6 +188,11 @@ function refreshSwatch() {
   var blue = $("#blue").slider("value");
   var hex = hexFromRGB(red, green, blue);
   $("#swatch").css("background-color", "#" + hex);
+
+  var speed = $("#editorSpeedSlider").slider("value");
+  $("#speedIndicator").text(speed);
+  var brightness = $("#editorBrightnessSlider").slider("value");
+  $("#brightnessIndicator").text(brightness);
 }
 
 // Set up initial UI elements.
