@@ -70,9 +70,9 @@ function initEditor() {
   $("#editorBrightnessSlider").slider({
     orientation: "horizontal",
     range: "min",
-    min: 255,
+    min: 0,
     max: 255,
-    value: 20,
+    value: 128,
     slide: refreshSwatch,
     change: refreshSwatch
   });
