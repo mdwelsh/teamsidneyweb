@@ -1,4 +1,4 @@
-![Team Sidney Logo](//tselogo.png)
+![Team Sidney Logo](/tselogo.png | width=100)
 
 Welcome to Team Sidney Enterprises. We are a homebrew maker shop
 designing hardware and software to make life more awesome.
@@ -36,7 +36,7 @@ from [Open Game Art](https://opengameart.org/).
 
 ## About us
 
-![Matt and Sidney](/matt-and-sid.jpg)
+![Matt and Sidney](/matt-and-sid.jpg | width=100)
 
 Team Sidney Enterprises is a team comprised of [Matt Welsh](https://www.mdw.la/) and Sidney Welsh.
 We live in Seattle, WA. Matt works for Google and Sidney is a fourth grader at West Woodland Elementary.
