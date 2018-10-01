@@ -15,6 +15,9 @@ the amazing [Feather HUZZAH32](https://www.adafruit.com/product/3405)
 developer board and [DotStar LED strips](https://www.adafruit.com/product/2241),
 both from Adafruit.
 
+{:.center}
+![Blinky GIF](/blinky.gif){:width="30%"}
+
 * [Blinky web interface](http://blinky.site/)
 * [Web controller source code on Github](https://github.com/mdwelsh/blinky)
 * [Feather firmware source code on Github](https://github.com/mdwelsh/sidney-projects/tree/master/arduino/Blinky)
