@@ -1,4 +1,5 @@
-![Team Sidney Logo](/tselogo.png){:.center width="40%"}
+{:.center}
+![Team Sidney Logo](/tselogo.png){:width="40%"}
 
 Welcome to Team Sidney Enterprises. We are a homebrew maker shop
 designing hardware and software to make life more awesome.
