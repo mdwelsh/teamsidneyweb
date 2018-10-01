@@ -16,7 +16,7 @@ developer board and [DotStar LED strips](https://www.adafruit.com/product/2241),
 both from Adafruit.
 
 {:.center}
-![Blinky GIF](/blinky.gif){:width="30%"}
+![Blinky GIF](/blinky.gif){:width="40%"}
 
 * [Blinky web interface](http://blinky.site/)
 * [Web controller source code on Github](https://github.com/mdwelsh/blinky)
@@ -27,6 +27,9 @@ both from Adafruit.
 Infinitube is a web-based "infinite faller" game implemented using
 the [Phaser.io](http://phaser.io/) JS framework, with assets sourced
 from [Open Game Art](https://opengameart.org/).
+
+{:.center}
+![Infinitube GIF](/infinitube.gif){:width="40%"}
 
 * [Play Infinitube online](http://infinitube.rocks/)
 * [Source code on Github](https://github.com/mdwelsh/infinitube) 
