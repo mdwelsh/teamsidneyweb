@@ -44,13 +44,23 @@ pots: one to control the brightness, and another to control the speed of the col
 changing effect.
 
 {:.center}
-![Minecraft Lamp](/minecraft-lamp.jpg){:width="40%"}
-![Minecraft Lamp PCB](/minecraft-lamp-pcb.jpg){:width="40%"}
+![Minecraft Lamp](minecraft-lamp.jpg){:width="40%"}
+![Minecraft Lamp PCB](minecraft-lamp-pcb.jpg){:width="40%"}
 
 * [Arduino code on Github](https://github.com/mdwelsh/sidney-projects/tree/master/arduino/PotFader)
 * [PCB and case designs](https://github.com/mdwelsh/sidney-projects/tree/master/arduino/hw/minecraft-lamp)
 
 ### Laser-cut Acrylic LED lamp
+
+This was our quickest project -- one day! It is a laser-cut wood base
+containing an [RGB LED
+strip](https://www.amazon.com/gp/product/B01I1BVIQ4/ref=oh_aui_search_detailpage?ie=UTF8&psc=1)
+with a remote control. A laser-etched acrylic sheet sits atop the base
+and is lit from below.
+
+{:.center}
+![Theo Lamp](theo-lamp.jpg){:width="40%"}
+
 
 ### Raspberry Pi Day/Night Clock
 
