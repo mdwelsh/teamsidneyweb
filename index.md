@@ -44,8 +44,8 @@ pots: one to control the brightness, and another to control the speed of the col
 changing effect.
 
 {:.center}
-![Minecraft Lamp](minecraft-lamp.jpg){:width="40%"}
-![Minecraft Lamp PCB](minecraft-lamp-pcb.jpg){:width="40%"}
+![Minecraft Lamp](minecraft-lamp.jpg){:height="300px"}
+![Minecraft Lamp PCB](minecraft-lamp-pcb.jpg){:height="300px"}
 
 * [Arduino code on Github](https://github.com/mdwelsh/sidney-projects/tree/master/arduino/PotFader)
 * [PCB and case designs](https://github.com/mdwelsh/sidney-projects/tree/master/arduino/hw/minecraft-lamp)
@@ -61,9 +61,18 @@ and is lit from below.
 {:.center}
 ![Theo Lamp](theo-lamp.jpg){:width="40%"}
 
-
 ### Raspberry Pi Day/Night Clock
 
+This is a clock based on a Raspberry Pi mated with a [Pimoroni Unicorn
+HAT HD](https://www.adafruit.com/product/3580) 16x16 RGB LED display.
+It shows different images depending on the time of day, to help
+Sidney's little brother know when he's allowed to get out of bed in
+the morning.
+
+{:.center}
+![Theo clock GIF](theo-clock.gif){:width="40%"}
+
+* [Python source code on Github](https://github.com/mdwelsh/sidney-projects/tree/master/pi/theoclock)
 
 ## About us
 
