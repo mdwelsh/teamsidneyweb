@@ -36,6 +36,15 @@ from [Open Game Art](https://opengameart.org/).
 
 ### Minecraft lamp
 
+This lamp is based on a design from [John Baichtal](https://www.oreilly.com/pub/au/4988), author of [Minecraft for Makers](http://shop.oreilly.com/product/0636920115298.do). It is a laser-cut plywood box, spraypainted with laser-cut templates. Inside is an RGB LED, controlled by a nearby control box containing an Arduino with a custom PCB shield and two pots: one to control the brightness, and another to control the speed of the color changing effect.
+
+{:.center}
+![Minecraft Lamp](/minecraft-lamp.jpg){:width="40%"}
+![Minecraft Lamp PCB](/minecraft-lamp-pcb.jpg){:width="40%"}
+
+* [Arduino code on Github](https://github.com/mdwelsh/sidney-projects/tree/master/arduino/PotFader)
+* [PCB and case designs](https://github.com/mdwelsh/sidney-projects/tree/master/arduino/hw/minecraft-lamp)
+
 ### Laser-cut Acrylic LED lamp
 
 ### Raspberry Pi Day/Night Clock
@@ -43,7 +52,9 @@ from [Open Game Art](https://opengameart.org/).
 
 ## About us
 
+{:.center}
 ![Matt and Sidney](/matt-and-sid.jpg){:width="50%"}
 
-Team Sidney Enterprises is a team comprised of [Matt Welsh](https://www.mdw.la/) and Sidney Welsh.
-We live in Seattle, WA. Matt works for Google and Sidney is a fourth grader at West Woodland Elementary.
+Team Sidney Enterprises is a team comprised of Sidney Welsh and [Matt Welsh](https://www.mdw.la/).
+We live in Seattle, WA. Sidney enjoys making, hacking, snacking, and science.
+
