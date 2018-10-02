@@ -36,7 +36,12 @@ from [Open Game Art](https://opengameart.org/).
 
 ### Minecraft lamp
 
-This lamp is based on a design from [John Baichtal](https://www.oreilly.com/pub/au/4988), author of [Minecraft for Makers](http://shop.oreilly.com/product/0636920115298.do). It is a laser-cut plywood box, spraypainted with laser-cut templates. Inside is an RGB LED, controlled by a nearby control box containing an Arduino with a custom PCB shield and two pots: one to control the brightness, and another to control the speed of the color changing effect.
+This lamp is based on a design from [John Baichtal](https://www.oreilly.com/pub/au/4988),
+author of [Minecraft for Makers](http://shop.oreilly.com/product/0636920115298.do). It
+is a laser-cut plywood box, spraypainted with laser-cut templates. Inside is an RGB LED,
+controlled by a nearby control box containing an Arduino with a custom PCB shield and two
+pots: one to control the brightness, and another to control the speed of the color
+changing effect.
 
 {:.center}
 ![Minecraft Lamp](/minecraft-lamp.jpg){:width="40%"}
