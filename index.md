@@ -74,11 +74,5 @@ the morning.
 
 * [Python source code on Github](https://github.com/mdwelsh/sidney-projects/tree/master/pi/theoclock)
 
-## About us
 
-{:.center}
-![Matt and Sidney](/matt-and-sid.jpg){:width="50%"}
-
-Team Sidney Enterprises is a team comprised of Sidney Welsh and [Matt Welsh](https://www.mdw.la/).
-We live in Seattle, WA. Sidney enjoys making, hacking, snacking, and science.
 
