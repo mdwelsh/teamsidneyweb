@@ -88,6 +88,9 @@ port, so use the serial monitor if things do not seem to be working.
 
 ## Web interface
 
+{:.center}
+![Blinky web interface](/blinky-screenshot.png){:width="50%"}
+
 The web interface uses the Firebase JS API to read and write data to
 Firebase. To use this with your own project, you need to edit the code
 ([found here](https://github.com/mdwelsh/blinky)) to change the name of
