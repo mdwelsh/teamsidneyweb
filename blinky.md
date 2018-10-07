@@ -1,7 +1,8 @@
 # Blinky - The Cloud-Controlled LED Light Display
 
 {:.center}
-![Blinky GIF](/blinky.gif){:width="40%"}
+![Blinky GIF](/blinky.gif){:height="300px"}
+![Blinky hardware](/blinky-hardware.jpg){:height="300px"}
 
 Blinky is a cloud-controlled, programmable home light display based on
 the amazing [Feather HUZZAH32](https://www.adafruit.com/product/3405)
