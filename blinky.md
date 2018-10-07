@@ -1,8 +1,8 @@
 # Blinky - The Cloud-Controlled LED Light Display
 
 {:.center}
-![Blinky GIF](/blinky.gif){:height="300px"}
-![Blinky hardware](/blinky-hardware.jpg){:height="300px"}
+![Blinky GIF](/blinky.gif){:height="200px"}
+![Blinky hardware](/blinky-hardware.jpg){:height="200px"}
 
 Blinky is a cloud-controlled, programmable home light display based on
 the amazing [Feather HUZZAH32](https://www.adafruit.com/product/3405)
@@ -25,6 +25,9 @@ For this project, you will need:
   four-pin header which can be connected to the DotStar. This is not
   strictly needed if you are comfortable connecting wires from the
   Feather to the DotStar directly, or want to use a breadboard.
+  Here are the
+  [Gerber files](https://github.com/mdwelsh/sidney-projects/tree/master/arduino/hw/dotstar-feather-wing)
+  for the PCB, and you can order them (10 PCBs for $2!) from [jlcpb.com](jlcpcb.com).
 * A power source. We use a USB wall charger capable of delivering 2.4A
   per port, [such as this
   one](https://www.amazon.com/gp/product/B00P936188/ref=oh_aui_detailpage_o06_s00?ie=UTF8&psc=1).
