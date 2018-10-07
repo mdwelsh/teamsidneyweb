@@ -14,5 +14,5 @@ electronics, hacking, and laser cutters.
 
 ![Picture of matt](mdw.jpg){:height="250px"}
 
-Matt works at Google in Seattle, WA, 
+[Matt](https://www.mdw.la/) works at Google in Seattle, WA, 
 and enjoys riding bikes, drinking beer, and programming computers.
