@@ -1,6 +1,5 @@
----
-title: Blinky
----
+# Blinky - The Cloud-Controlled LED Light Display
+
 {:.center}
 ![Blinky GIF](/blinky.gif){:width="40%"}
 
