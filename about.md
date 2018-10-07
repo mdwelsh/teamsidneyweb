@@ -16,3 +16,10 @@ electronics, hacking, and laser cutters.
 
 [Matt](https://www.mdw.la/) works at Google in Seattle, WA, 
 and enjoys riding bikes, drinking beer, and programming computers.
+
+## Contact
+
+For more information, questions, thoughts, raves, rants, kudos, or
+manifestos, feel free to email us at <a
+href="mailto:info@teamsidney.com">info@teamsidney.com</a>.
+
