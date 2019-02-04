@@ -78,6 +78,9 @@ body {
 }
 
 /* Devices tab elements */
+#etchCanvas {
+}
+
 .responsive {
   width: 100%;
   height: auto;
