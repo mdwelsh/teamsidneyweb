@@ -116,7 +116,9 @@ function parseGcode(data) {
   });
 
   // Remove final (0, 0) added by Inkscape Gcode plugin.
-  if (waypoints[waypoints.length-1].x == 0 && waypoints[waypoints.length-1].y == 0) {
+  if (waypoints.length > 0 &&
+      waypoints[waypoints.length-1].x == 0 &&
+      waypoints[waypoints.length-1].y == 0) {
     waypoints.pop();
   }
 

@@ -85,7 +85,7 @@
             <canvas id="etchCanvas" class="responsive" width=1326 height=1081></canvas>
           </div>
 
-          <div class="mdl-cell mdl-cell--4-col"> 
+          <div class="mdl-cell mdl-cell--4-col">
             <div id="fileSelector" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
               <div>
                 <label for="fileSelect" class="mdl-textfield__label">Gcode file</label>
@@ -136,10 +136,14 @@
   <label class="mdl-button mdl-button--colored mdl-js-button mdl-button--raised mdl-js-ripple-effect">
     Choose file <input id="uploadGcodeFile" type="file" style="display: none;">
   </label>
-  <div class="uploadGcodeSelectedFile" id="uploadFirmwareSelectedFile"></div>
-  <div class="uploadGcodeError" id="uploadFirmwareError"></div>
+  <div class="uploadGcodeSelectedFile" id="uploadGcodeSelectedFile"></div>
+  <div class="uploadGcodeError" id="uploadGcodeError"></div>
   <div id="uploadGcodeSpinner" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
   <div id="uploadGcodeLink"></div>
+  <div class="uploadGcodePreview">Preview</div>
+  <div>
+    <canvas id="previewCanvas" width=1326 height=1081></canvas>
+  </div>
 </div>
 <div class="mdl-dialog__actions">
   <div role="group">
