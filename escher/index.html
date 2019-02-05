@@ -113,7 +113,7 @@
     <section class="mdl-layout__tab-panel" id="scroll-tab-firmware">
       <div class="tab-contents">
         <div id="firmwarelist" class="listgroup"></div>
-        <button id="firmwareUploadButton" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+        <button id="fileUploadButton" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
           <i class="material-icons">add</i>
         </button>
       </div>
@@ -121,6 +121,34 @@
 
   </main>
 </div>
+
+<!-- Upload GCode dialog modal -->
+<dialog id="uploadGcode" class="mdl-dialog">
+<div class="uploadGcodeHeader">
+  <div class="mdl-dialog__title" id="uploadGCodeTitle">
+    Upload Gcode file
+  </div>
+</div>
+<!-- Upload Gcode body -->
+<div class="mdl-dialog__content" id="uploadGcodeBody">
+  <label class="mdl-button mdl-button--colored mdl-js-button mdl-button--raised mdl-js-ripple-effect">
+    Choose file <input id="uploadGcodeFile" type="file" style="display: none;">
+  </label>
+  <div class="uploadGcodeSelectedFile" id="uploadFirmwareSelectedFile"></div>
+  <div class="uploadGcodeError" id="uploadFirmwareError"></div>
+  <div id="uploadGcodeSpinner" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
+  <div id="uploadGcodeLink"></div>
+</div>
+<div class="mdl-dialog__actions">
+  <div role="group">
+    <button id="uploadGcodeCancel" type="button" class="mdl-button">Cancel</button>
+    <button id="uploadGcodeConfirm" type="button" class="mdl-button mdl-button--raised mdl-button--colored" disabled>Add</button>
+  </div>
+</div>
+</dialog>
+
+
+
 
 <script src="main.js"></script>
 </body>
