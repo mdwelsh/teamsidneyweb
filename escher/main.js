@@ -1,5 +1,7 @@
 /* Escher main JS code */
 
+var provider = new firebase.auth.GoogleAuthProvider();
+
 // Image with Etch-a-Sketch background.
 var backgroundImage;
 
@@ -7,8 +9,77 @@ window.onload = function() {
   setup();
 };
 
+// Show an error toast.
+function showError(msg) {
+  var notification = document.querySelector('.mdl-js-snackbar');
+  notification.MaterialSnackbar.showSnackbar({
+    message: msg
+  });
+}
+
+// Return the current user.
+function currentUser() {
+  return firebase.auth().currentUser;
+}
+
+// Perform login action.
+function doLogin() {
+  firebase.auth().signInWithPopup(provider).then(function(result) {
+  }).catch(function(error) {
+    showError('Sorry, could not log you in: ' + error.message);
+  });
+}
+
+// Log out.
+function logout() {
+  firebase.auth().signOut().then(function() {
+    setup(); // Get back to initial state.
+  }, function(error) {
+    showError('Problem logging out: ' + error.message);
+  });
+}
+
+// Toggle login buttons.
+function toggleLoginState() {
+  if (currentUser() == null) {
+    // Not logged in yet.
+    $('#login').show();
+    $('#logout').hide();
+  } else {
+    // Already logged in.
+    $('#login').hide();
+    $('#logout').show();
+  }
+}
+
+// Callback when signin complete.
+firebase.auth().onAuthStateChanged(function(user) {
+  setup();
+});
+
+// Called when there is an error reading the database.
+function dbErrorCallback(err) {
+  console.log('Database error:');
+  console.log(err);
+  // Ignore the error if not logged in yet.
+  if (currentUser() != null) {
+    showError(err.message);
+  }
+}
+
+// Invoked whenever we need to reset the UI to a known state.
 function setup() {
   // Configure UI actions.
+
+  // Login/logout buttons.
+  $('#login').off('click');
+  $('#login').click(doLogin);
+  $('#logout').off('click');
+  $('#logout').click(logout);
+
+  toggleLoginState();
+
+  // File upload dialog.
   $('#fileUploadButton').click(function (e) {
     console.log('fileUploadButton clicked');
     uploadGcodeStart();
@@ -40,11 +111,8 @@ function setup() {
     showEtchASketch($("#etchCanvas").get(0));
   });
 
-  //resizeCanvas($("#etchCanvas"));
-  //$(window).on("resize", function(){
-  //  resizeCanvas($("#etchCanvas"));
-  //});
 }
+
 
 var uploadedGcode = null;
 var uploadedGcodeUrl = null;
@@ -56,7 +124,6 @@ function uploadGcodeStart() {
   $('#uploadGcodeError').empty();
   $('#uploadGcodeLink').empty();
   $('#uploadGcodeSpinner').hide();
-  //resizeCanvas($("#previewCanvas"));
   showEtchASketch($("#previewCanvas").get(0));
 }
 
@@ -103,20 +170,8 @@ function uploadGcodePreview(data) {
 function uploadGcodeDone() {
 }
 
-// Scale canvas outerHeight to match proportions
-// of background image relative to outerWidth.
-function resizeCanvas(canvasElem){
-  console.log('Resizing canvas - outerWidth ' + canvasElem.outerWidth());
-  console.log('Resizing canvas - outerHeight ' + canvasElem.outerHeight());
-  //var ow = canvasElem.outerWidth;
-  //var oh = (ow * (backgroundImage.height / backgroundImage.width));
-  //canvasElem.outerHeight(oh);
-  console.log('Resizing canvas - outerHeight now ' + canvasElem.outerHeight());
-}
-
-
+// Paint the Etch-a-Sketch image on the given canvas.
 function showEtchASketch(canvas) {
-  // Paint the Etch-a-Sketch image on the given canvas.
   var ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -124,6 +179,7 @@ function showEtchASketch(canvas) {
   ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
 }
 
+// Draw the given points on the canvas with a given linewidth.
 function etch(canvas, points, lineWidth) {
   console.log('Etching ' + points.length + ' points');
   showEtchASketch(canvas);
