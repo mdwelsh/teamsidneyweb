@@ -17,54 +17,59 @@
 const WIDTH_STEPS = 900;
 const HEIGHT_STEPS = 620;
 
-/*
-def atan3(dy, dx):
- a = math.atan2(dy,dx)
- if a < 0:
-   a = (math.pi * 2.0) + a
- return a
+function atan3(dy, dx) {
+ var a = Math.atan2(dy, dx);
+ if (a < 0) {
+   a = (Math.PI * 2.0) + a;
+ }
+ return a;
+}
 
+// Precision of arcs in centimeters per segment.
+const CM_PER_SEGMENT = 0.1;
 
-# Adapted from:
-# https://www.marginallyclever.com/2014/03/how-to-improve-the-2-axis-cnc-gcode-interpreter-to-understand-arcs/
-def doArc(posx, posy, x, y, cx, cy, cw, CM_PER_SEGMENT=0.1): 
-  retval = []
-  dx = posx - cx 
-  dy = posy - cy
-  radius = math.sqrt((dx*dx)+(dy*dy))
+// Adapted from:
+//  https://www.marginallyclever.com/2014/03/how-to-improve-the-2-axis-cnc-gcode-interpreter-to-understand-arcs/
+function doArc(posx, posy, x, y, cx, cy, cw) {
+  var retval = [];
+  var dx = posx - cx;
+  var dy = posy - cy;
+  var radius = Math.sqrt((dx*dx)+(dy*dy));
 
-  # find the sweep of the arc
-  angle1 = atan3(posy - cy, posx - cx)
-  angle2 = atan3(y - cy, x - cx)
-  sweep = angle2 - angle1
+  // find the sweep of the arc
+  var angle1 = atan3(posy - cy, posx - cx);
+  var angle2 = atan3(y - cy, x - cx);
+  var sweep = angle2 - angle1;
 
-  if sweep < 0 and cw:
-    angle2 += 2.0 * math.pi
-  elif sweep > 0 and not cw:
-    angle1 += 2.0 * math.pi
+  if (sweep < 0 && cw) {
+    angle2 += 2.0 * Math.PI;
+  } else if (sweep > 0 && !cw) {
+    angle1 += 2.0 * Math.PI;
+  }
 
-  sweep = angle2 - angle1
+  sweep = angle2 - angle1;
 
-  # get length of arc
-  l = abs(sweep) * radius
-  num_segments = int(math.floor( l / CM_PER_SEGMENT ))
+  // get length of arc
+  var l = Math.abs(sweep) * radius;
+  var num_segments = Math.floor(l / CM_PER_SEGMENT);
 
-  for i in range(num_segments):
-    # interpolate around the arc
-    fraction = (i * 1.0) / (num_segments * 1.0)
-    angle3 = (sweep * fraction) + angle1
+  for (i = 0; i < num_segments; i++) {
+    // interpolate around the arc
+    var fraction = (i * 1.0) / (num_segments * 1.0);
+    var angle3 = (sweep * fraction) + angle1;
 
-    # find the intermediate position
-    nx = cx + math.cos(angle3) * radius
-    ny = cy + math.sin(angle3) * radius
+    // find the intermediate position
+    var nx = cx + Math.cos(angle3) * radius;
+    var ny = cy + Math.sin(angle3) * radius;
 
-    # make a line to that intermediate position
-    retval.append((nx, ny))
+    // make a line to that intermediate position
+    retval.push({x: nx, y: ny});
+  }
 
-  # one last line hit the end
-  retval.append((x, y))
-  return retval
-*/
+  // one last line hit the end
+  retval.push({x: x, y: y});
+  return retval;
+}
 
 function parseGcode(data) {
   var enc = new TextDecoder("utf-8");
@@ -77,9 +82,36 @@ function parseGcode(data) {
     var re = /^(G0[01]) X([\d\.]+) Y([\d\.]+)/;
     var m = re.exec(line);
     if (m != null) {
-      x = parseFloat(m[2])
-      y = parseFloat(m[3])
+      var x = parseFloat(m[2]);
+      var y = parseFloat(m[3]);
       waypoints.push({x: x, y: y});
+    }
+
+    var re2 = /^(G0[23]) X([-\d\.]+) Y([-\d\.]+) (Z[-\d\.]+)? I([-\d\.]+) J([-\d\.]+)/;
+    m = re2.exec(line);
+    if (m != null) {
+      if (waypoints.length == 0) {
+        console.log('Warning! Unable to execute G02/G03 without known previous position.');
+        console.log(line);
+        return;
+      }
+      var last = waypoints[waypoints.length-1];
+      var x = parseFloat(m[2]);
+      var y = parseFloat(m[3]);
+      var i = parseFloat(m[5]);
+      var j = parseFloat(m[6]);
+      var cw = false;
+      if (m[1] == 'G03') {
+        // Docs say that G02 is clockwise, but maybe my math is wrong
+        //(or I'm flipped around in the y-axis) since G03 needs to
+        // be CW for this to work.
+        cw = true;
+      }
+
+      curve = doArc(last.x, last.y, x, y, last.x+i, last.y+j, cw);
+      curve.forEach(function(pt) {
+        waypoints.push(pt);
+      });
     }
   });
 
@@ -130,40 +162,6 @@ function scaleToScreen(pts) {
 
   return ret;
 }
-
-
-/*
-
-    m = re.match('(G0[23]) X([-\d\.]+) Y([-\d\.]+) (Z[-\d\.]+)? I([-\d\.]+) J([-\d\.]+)', line)
-    if m:
-      if len(waypoints) == 0:
-        print sys.stderr, 'Warning! Unable to execute G02/G03 without known previous position.'
-        print sys.stderr, line
-        continue
-      (curx, cury) = waypoints[-1]
-      x = float(m.group(2))
-      y = float(m.group(3))
-      i = float(m.group(5))
-      j = float(m.group(6))
-      cw = False
-      if m.group(1) == 'G03':
-        # Docs say that G02 is clockwise, but maybe my math is wrong
-        # (or I'm flipped around in the y-axis) since G03 needs to
-        # be CW for this to work.
-        cw = True
-      curve = doArc(curx, cury, x, y, curx+i, cury+j, cw)
-      for pt in curve:
-        waypoints.append(pt)
-
-
-  # Trim off (0, 0) point tacked on at end by Inkscape GCode plugin
-  if waypoints[-1] == (0., 0.):
-    waypoints = waypoints[:-1]
-
-  return waypoints
-*/
-
-
 
 /*
  *
