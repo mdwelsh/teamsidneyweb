@@ -86,7 +86,43 @@ body {
   height: auto;
 }
 
-/* Older stuff below */
+#fileUploadButton {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  padding-top: 24px;
+  margin-bottom: 0;
+  z-index: 998;
+}
+
+/* Upload Gcode dialog */
+#uploadGcode {
+  width: 80%;
+}
+
+.uploadGcodeHeader {
+  display: grid;
+  grid-template-columns: 90% 10%;
+  width: 100%;
+}
+
+#uploadGcodeTitle {
+  font-size: 16px;
+}
+
+#uploadGcodeSelectedFile {
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+#uploadGcodeError {
+  margin-top: 5px;
+  font-size: 12px;
+  color: red;
+}
+
+
+/* Older stuff below ***************************************/
 
 #log {
   margin-top: 20px;
@@ -294,35 +330,6 @@ body {
   }
 }
 
-#uploadFirmware {
-  width: 80%;
-}
-
-.uploadFirmwareHeader {
-  display: grid;
-  grid-template-columns: 90% 10%;
-  width: 100%;
-}
-
-#uploadFirmwareTitle {
-  font-size: 16px;
-}
-
-#uploadFirmwareSelectedFile {
-  margin-top: 5px;
-  font-size: 14px;
-}
-
-#uploadFirmwareError {
-  margin-top: 5px;
-  font-size: 12px;
-  color: red;
-}
-
-#uploadFirmwareVersion {
-  margin-top: 5px;
-  font-size: 14px;
-}
 
 #deleteFirmware {
   width: 80%;

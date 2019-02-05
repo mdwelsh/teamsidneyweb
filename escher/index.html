@@ -81,14 +81,14 @@
       <div class="tab-contents">
         <div class="mdl-grid">
 
-          <div class="mdl-cell mdl-cell--6-col">
+          <div class="mdl-cell mdl-cell--8-col">
             <canvas id="etchCanvas" class="responsive" width=1326 height=1081></canvas>
           </div>
 
           <div class="mdl-cell mdl-cell--4-col"> 
             <div id="fileSelector" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
               <div>
-                <label for="fileSelect" class="mdl-textfield__label">GCode file</label>
+                <label for="fileSelect" class="mdl-textfield__label">Gcode file</label>
               </div>
               <div>
                 <select class="mdl-textfield__input" id="fileSelect"></select>
@@ -100,10 +100,12 @@
             </div>
           </div>
 
-          <div class="mdl-cell mdl-cell--2-col"><!--empty--></div>
-          </div>
-
         </div>  <!-- Grid -->
+
+        <!-- Upload Gcode fab -->
+        <button id="fileUploadButton" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+          <i class="material-icons">add</i>
+        </button>
 
         <div id="dberror" class="errormsg"></div>
         <div id="striplist" class="listgroup"></div>
@@ -122,10 +124,10 @@
   </main>
 </div>
 
-<!-- Upload GCode dialog modal -->
+<!-- Upload Gcode dialog modal -->
 <dialog id="uploadGcode" class="mdl-dialog">
 <div class="uploadGcodeHeader">
-  <div class="mdl-dialog__title" id="uploadGCodeTitle">
+  <div class="mdl-dialog__title" id="uploadGcodeTitle">
     Upload Gcode file
   </div>
 </div>
@@ -147,9 +149,7 @@
 </div>
 </dialog>
 
-
-
-
+<script src="gcode.js"></script>
 <script src="main.js"></script>
 </body>
 </html>
