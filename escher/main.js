@@ -9,12 +9,16 @@ window.onload = function() {
   setup();
 };
 
-// Show an error toast.
-function showError(msg) {
+function showMessage(msg) {
   var notification = document.querySelector('.mdl-js-snackbar');
   notification.MaterialSnackbar.showSnackbar({
     message: msg
   });
+}
+
+// Show an error toast.
+function showError(msg) {
+  showMessage(msg);
 }
 
 // Return the current user.
@@ -69,8 +73,6 @@ function dbErrorCallback(err) {
 
 // Invoked whenever we need to reset the UI to a known state.
 function setup() {
-  // Configure UI actions.
-
   // Login/logout buttons.
   $('#login').off('click');
   $('#login').click(doLogin);
@@ -88,12 +90,11 @@ function setup() {
   $('#uploadGcodeFile').change(function() {
     console.log('uploadGcodeFile changed');
     var file = $('#uploadGcodeFile')[0].files[0];
-    uploadGcode(file);
+    uploadGcodeFileSelected(file);
   });
   $('#uploadGcodeConfirm').click(function (e) {
     console.log('uploadGcodeConfirm clicked');
-    $("#uploadGcode").get()[0].close();
-    gcodeUploadDone();
+    uploadGcodeDoUpload();
   });
   $('#uploadGcodeCancel').click(function (e) {
     console.log('uploadGcodeCancel clicked');
@@ -128,7 +129,7 @@ function uploadGcodeStart() {
 }
 
 // Called when Gcode file selector changes.
-function uploadGcode(file) {
+function uploadGcodeFileSelected(file) {
   uploadedGcode = file;
   $('#uploadGcodeConfirm').prop('disabled', true);
   $('#uploadGcodeSelectedFile').text('File: ' + file.name);
@@ -167,8 +168,47 @@ function uploadGcodePreview(data) {
 }
 
 // Called when upload has been confirmed by user.
-function uploadGcodeDone() {
+function uploadGcodeDoUpload() {
+  // Start the upload.
+  $('#uploadGcodeSpinner').show();
+
+  var fname = uploadedGcode.name;
+  console.log('Starting upload of ' + fname);
+  var storageRef = firebase.storage().ref();
+  var uploadRef = storageRef.child(fname);
+  uploadRef.put(uploadedGcode).then(function(snapshot) {
+    // Upload done.
+    $('#uploadGcodeSpinner').hide();
+    console.log('Upload complete');
+    // Add link.
+    uploadRef.getDownloadURL().then(function(url) {
+      $('#uploadGcodeLink').html('Uploaded: <a href="'+url+'">'+fname+'</a>');
+
+      // XXX XXX XXX MDW Stopped here.
+      // Let's use Cloud Firestore instead of Realtime DB for this project.
+      // Need to update the following for the Cloud Firestore API.
+
+      // Add a DB entry with metadata about the uploaded file.
+      var dbRef = firebase.database().ref('escher/gcode/');
+      var entry = dbRef.push();
+      entry.set({
+        dateUploaded: firebase.database.ServerValue.TIMESTAMP,
+        filename: fname,
+        url: url,
+      }).then(function() {
+        // Close the dialog.
+        $("#uploadGcode").get()[0].close();
+        showMessage('Uploaded ' + fname);
+      })
+      .catch(function(error) {
+        // Close the dialog.
+        $("#uploadGcode").get()[0].close();
+        showError('Error uploading Gcode: ' + error.message);
+      });
+    });
+  });
 }
+
 
 // Paint the Etch-a-Sketch image on the given canvas.
 function showEtchASketch(canvas) {
