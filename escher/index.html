@@ -31,13 +31,14 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
 <!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/3.2.1/firebase.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.8.2/firebase.js"></script>
 <script>
   // Initialize Firebase
   var config = {
     apiKey: "AIzaSyABCaBBY04zpvIl1efmOPrKwNtPkgTXfqs",
     authDomain: "team-sidney.firebaseapp.com",
     databaseURL: "https://team-sidney.firebaseio.com",
+    projectId: "team-sidney",
     storageBucket: "team-sidney.appspot.com",
   };
   firebase.initializeApp(config);
@@ -84,7 +85,7 @@
       <div class="tab-contents">
         <div class="mdl-grid">
 
-          <div class="mdl-cell mdl-cell--8-col">
+          <div class="mdl-cell mdl-cell--6-col">
             <canvas id="etchCanvas" class="responsive" width=1326 height=1081></canvas>
           </div>
 

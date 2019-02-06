@@ -1,6 +1,7 @@
 /* Escher main JS code */
 
 var provider = new firebase.auth.GoogleAuthProvider();
+var db = firebase.firestore();
 
 // Image with Etch-a-Sketch background.
 var backgroundImage;
@@ -120,6 +121,8 @@ var uploadedGcodeUrl = null;
 
 // Called when Gcode upload dialog is opened.
 function uploadGcodeStart() {
+  uploadedGcode = null;
+  uploadedGcodeUrl = null;
   $('#uploadGcodeConfirm').prop('disabled', true);
   $('#uploadGcodeSelectedFile').empty();
   $('#uploadGcodeError').empty();
@@ -178,30 +181,23 @@ function uploadGcodeDoUpload() {
   var uploadRef = storageRef.child(fname);
   uploadRef.put(uploadedGcode).then(function(snapshot) {
     // Upload done.
-    $('#uploadGcodeSpinner').hide();
     console.log('Upload complete');
+    $('#uploadGcodeSpinner').hide();
     // Add link.
     uploadRef.getDownloadURL().then(function(url) {
-      $('#uploadGcodeLink').html('Uploaded: <a href="'+url+'">'+fname+'</a>');
-
-      // XXX XXX XXX MDW Stopped here.
-      // Let's use Cloud Firestore instead of Realtime DB for this project.
-      // Need to update the following for the Cloud Firestore API.
-
       // Add a DB entry with metadata about the uploaded file.
-      var dbRef = firebase.database().ref('escher/gcode/');
-      var entry = dbRef.push();
-      entry.set({
-        dateUploaded: firebase.database.ServerValue.TIMESTAMP,
+      db.collection("escher").doc("root").collection("gcode").add({
+        dateUploaded: firebase.firestore.FieldValue.serverTimestamp(),
         filename: fname,
         url: url,
-      }).then(function() {
+      }).then(function(docRef) {
         // Close the dialog.
+        console.log('Done with upload, closing dialog');
         $("#uploadGcode").get()[0].close();
         showMessage('Uploaded ' + fname);
-      })
-      .catch(function(error) {
+      }).catch(function(error) {
         // Close the dialog.
+        console.log('Upload error, closing dialog');
         $("#uploadGcode").get()[0].close();
         showError('Error uploading Gcode: ' + error.message);
       });
