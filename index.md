@@ -5,7 +5,7 @@ Welcome to Team Sidney Enterprises. We are a homebrew maker shop
 designing hardware and software to make life more awesome.
 
 * [Our projects](projects)
-* [Photo gallery](gallery)
+* [Blog](blog)
 * [About us](about)
 
 {:.center}
