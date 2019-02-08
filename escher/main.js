@@ -127,6 +127,31 @@ function setup() {
   $(backgroundImage).load(function () {
     showEtchASketch($("#etchCanvas").get(0), true);
   });
+
+  // Set up listener for Gcode metadata updates.
+  db.collection("escher").doc("root").collection("gcode")
+    .onSnapshot(function(snapshot) {
+        snapshot.docChanges().forEach(function(change) {
+            if (change.type === "added") {
+              addGcodeEntry(change.doc.data());
+            }
+            if (change.type === "removed") {
+              removeGcodeEntry(change.doc.data());
+            }
+        });
+    });
+
+}
+
+// XXX XXX MDW STOPPED HERE.
+var gcodeFiles = {};
+
+function addGcodeEntry(gcodeDoc) {
+  gcodeFiles.push(gcodeDoc);
+}
+
+function removeGcodeEntry(gcodeDoc) {
+  // XXX 
 }
 
 
