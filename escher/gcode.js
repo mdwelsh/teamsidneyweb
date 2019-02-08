@@ -125,7 +125,7 @@ function parseGcode(data) {
   return waypoints;
 }
 
-function scaleToScreen(pts) {
+function scaleToBbox(pts, bbox) {
   // Find min and max ranges.
   var minx = pts.reduce(function(prev, curr) {
     return prev.x < curr.x ? prev : curr;
@@ -146,12 +146,13 @@ function scaleToScreen(pts) {
   var dx = maxx.x - minx.x;
   var dy = maxy.y - miny.y;
   console.log('dx ' + dx + ' dy ' + dy);
-  // Scale longest axis to fit.
+  x_y_ratio = bbox.width/bbox.height;
+  // Scale longest axis (in proportion to bbox size) to fit.
   var scale;
-  if (dx > dy) {
-    scale = WIDTH_STEPS / dx;
+  if ((dx/x_y_ratio) > dy) {
+    scale = bbox.width / dx;
   } else {
-    scale = HEIGHT_STEPS / dy;
+    scale = bbox.height / dy;
   }
   console.log('scale ' + scale);
 
@@ -164,39 +165,3 @@ function scaleToScreen(pts) {
 
   return ret;
 }
-
-/*
- *
-def removeDuplicates(pts):
-  prev = None
-  ret = []
-  for point in pts:
-    if prev == None or point != prev:
-      prev = point
-      ret.append(point)
-  return ret
-
-
-
-
-
-# Parse and process the input file.
-waypoints = parseGcode(fileinput.input())
-waypoints = scaleToScreen(waypoints)
-waypoints = removeDuplicates(waypoints)
-
-# Write out the output.
-print '#define GCODE_NUM_POINTS %d' % len(waypoints)
-print 'const std::pair<long, long> _GCODE_POINTS[%d] = {' % len(waypoints)
-for (x, y) in waypoints:
-  print '  { std::make_pair(%d, %d) },' % (x, y)
-print '};'
-
-# Draw it on the screen.
-xes = [x for (x, y) in waypoints]
-yes = [y for (x, y) in waypoints]
-plt.plot(xes, yes)
-plt.axes().set_aspect('equal')
-plt.show()
-
-*/

@@ -6,6 +6,14 @@ var db = firebase.firestore();
 // Image with Etch-a-Sketch background.
 var backgroundImage;
 
+// Bounding box for screen of Etch-a-Sketch (experimentally determined).
+const ETCH_A_SKETCH_BBOX = {
+  x: 210,
+  y: 210,
+  width: 900,
+  height: 620,
+};
+
 window.onload = function() {
   setup();
 };
@@ -83,24 +91,31 @@ function setup() {
   toggleLoginState();
 
   // File upload dialog.
+
+  $('#fileUploadButton').off('click');
   $('#fileUploadButton').click(function (e) {
     console.log('fileUploadButton clicked');
+    console.log(e);
     uploadGcodeStart();
     $("#uploadGcode").get()[0].showModal();
   });
+  $('#uploadGcodeFile').off('change');
   $('#uploadGcodeFile').change(function() {
     console.log('uploadGcodeFile changed');
     var file = $('#uploadGcodeFile')[0].files[0];
     uploadGcodeFileSelected(file);
   });
+  $('#uploadGcodeConfirm').off('click');
   $('#uploadGcodeConfirm').click(function (e) {
     console.log('uploadGcodeConfirm clicked');
     uploadGcodeDoUpload();
   });
+  $('#uploadGcodeCancel').off('click');
   $('#uploadGcodeCancel').click(function (e) {
     console.log('uploadGcodeCancel clicked');
     $("#uploadGcode").get()[0].close();
   });
+  $('#uploadGcodeClose').off('click');
   $('#uploadGcodeClose').click(function (e) {
     console.log('uploadGcodeClose clicked');
     $("#uploadGcode").get()[0].close();
@@ -110,9 +125,8 @@ function setup() {
   backgroundImage = new Image();
   backgroundImage.src = "EtchASketch.jpg";
   $(backgroundImage).load(function () {
-    showEtchASketch($("#etchCanvas").get(0));
+    showEtchASketch($("#etchCanvas").get(0), true);
   });
-
 }
 
 
@@ -128,7 +142,7 @@ function uploadGcodeStart() {
   $('#uploadGcodeError').empty();
   $('#uploadGcodeLink').empty();
   $('#uploadGcodeSpinner').hide();
-  showEtchASketch($("#previewCanvas").get(0));
+  showEtchASketch($("#previewCanvas").get(0), true);
 }
 
 // Called when Gcode file selector changes.
@@ -161,11 +175,16 @@ function uploadGcodePreview(data) {
   console.log('Parsed ' + waypoints.length + ' waypoints from ' + uploadedGcode.name);
   console.log(waypoints);
 
-  var scaled = scaleToScreen(waypoints);
-  console.log('Scaled:');
-  console.log(scaled);
-
-  etch($("#previewCanvas").get(0), scaled, 2);
+  var canvas = $("#previewCanvas").get(0);
+  // Whole canvas.
+  var bbox = {
+    x: 0,
+    y: 0,
+    width: canvas.width,
+    height: canvas.height,
+  };
+  showEtchASketch(canvas, true);
+  etch(canvas, ETCH_A_SKETCH_BBOX, waypoints, 2);
 
   $('#uploadGcodeConfirm').prop('disabled', false);
 }
@@ -207,42 +226,48 @@ function uploadGcodeDoUpload() {
 
 
 // Paint the Etch-a-Sketch image on the given canvas.
-function showEtchASketch(canvas) {
+function showEtchASketch(canvas, frame) {
   var ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+  if (frame) {
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.fillStyle = '#bebbb6';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
 }
 
 // Draw the given points on the canvas with a given linewidth.
-function etch(canvas, points, lineWidth) {
-  console.log('Etching ' + points.length + ' points');
-  showEtchASketch(canvas);
-
-  // Offsets to screen of Etch-a-Sketch (experimentally determined).
-  var sx0 = 210;
-  var sy0 = 210;
-  var sw = 900;
-  var sh = 620;
+function etch(canvas, bbox, points, lineWidth) {
+  console.log('Etching ' + points.length +
+      ' points onto bbox ' + JSON.stringify(bbox));
 
   var ctx = canvas.getContext("2d");
+
+  // Debugging - draw bounding box.
+  ctx.strokeStyle = 'blue';
+  ctx.lineWidth = 5;
+  ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
+
+  var scaled = scaleToBbox(points, bbox);
 
   ctx.beginPath();
   ctx.strokeStyle = 'black';
   ctx.lineWidth = lineWidth;
   // Start at origin.
-  ctx.moveTo(sx0, sy0 + sh);
+  ctx.moveTo(bbox.x, (bbox.y + bbox.height));
 
-  points.forEach(function(elem) {
+  scaled.forEach(function(elem) {
     var x = elem.x;
     var y = elem.y;
 
     // First flip the y-axis.
-    y = sh - y;
+    y = bbox.height - y;
 
-    var tx = x + sx0;
-    var ty = y + sy0;
+    var tx = x + bbox.x;
+    var ty = y + bbox.y;
     ctx.lineTo(tx, ty);
   });
   ctx.stroke();
