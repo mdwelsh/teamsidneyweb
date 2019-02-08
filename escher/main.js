@@ -141,6 +141,18 @@ function setup() {
         });
     });
 
+  // Debugging - get user token.
+  
+  firebase.auth().currentUser.getIdToken(/* forceRefresh */ true)
+    .then(function(idToken) {
+    console.log("Got token:");
+    console.log(idToken);
+  }).catch(function(error) {
+    console.log("Error getting token:");
+    console.log(error);
+  });
+
+
 }
 
 // XXX XXX MDW STOPPED HERE.
