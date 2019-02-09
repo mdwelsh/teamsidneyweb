@@ -3,113 +3,56 @@
 * Add text box to change file name before uploading
 * Populate file list from database
 
-## Thinking about approach to device selection:
+## Design for device registration
 
-My ultimate goal is to be able to distribute these kits so that anyone
-can build one of these themselves. Ideally they should be able to do
-this without having to set up Firebase for themselves.
+Devices come preinstalled with a binary that:
+1. Creates a local WiFi AP
+2. Listens on a well-known port for HTTP requests
 
-Would be nice if we could eventually use the same approach for Blinky,
-so we can distribute Blinky kits without asking folks to set up their
-own Firebase configuration.
+The user connects to this AP and visits, e.g., http://192.168.1.1/ to
+configure the device.
 
-Idea:
+This is a simple web page that allows the user to input several
+parameters:
 
-- Anybody with a Google (or FB, Twitter, etc.) account can register on
-  teamsidney.com/escher
-- A user's Gcode files belong to them. Only accessible to that user.
-- (Sharing Gcode between users on the website would be cool, but let's
-  not do that yet.)
-- Escher devices need to be associated with a given user ID. How?
+* Give the device a human-readable name
+* Possibly configure the type of device this is (e.g., Escher, Blinky, etc.)
+* Enter the SSID and password for the local WiFi network to use
+* Enter the username and password for a Team Sidney account to use
 
-One approach:
-- Escher device is initially set up with its own WiFi AP:
+The device stores these parameters to local flash, reboots, joins the
+local WiFi network, and pulls down a new firmware binary and reboots
+into it.
+
+Once in the "real" firmware, the device uses the Firebase Auth REST
+API to sign into Firebase using the username/password provided by the
+user above, and obtain a Firebase Auth ID token.
+
+The device then periodically checks into Firebase, using the ID token
+obtained above, writing a record to Firebase with the key
+
+/escher/userID/deviceID
+
+with its name, firmware version, last checkin time, and local
+IP address.
+
+Firebase Cloud Firestore rules are configured so that only `userID`
+can access records with this prefix.
+
+When the user logs into teamsidney.com/escher with the same username
+and password, they can see their own devices on the device list.
+The web page can issue an XHR request directly to the device using its
+local IP address to control it.
+
+WiFi Access Point example:
 
 https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/examples/WiFiAccessPoint/WiFiAccessPoint.ino
 
-- For initial configuration, user connects to that AP, goes to a
-  well-known URL on the device, and plugs in the "real" WiFi
-  SSID/password. This is stored to flash.
+Simple HTTP server:
 
-- When device reboots, it joins that AP (reading configuration from flash),
-  goes onto the Internet, and pulls down latest firmware for Escher.
-  Reboots itself into that.
+https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/examples/SimpleWiFiServer/SimpleWiFiServer.ino
 
-  - This means the Escher binary also needs to read WiFi set up from flash.
-
-- This bootstrapping binary also has support for clearing out the
-  config from flash so the user can wipe a device and start over.
-
-- I maintain the latest firmware image and configuration, so all
-  devices in the world get a firmware update automatically.
-
-- Is there a way to also plug in a user token of some kind so that the
-  Escher device ends up being able to authenticate at the Gmail
-  account of the user?
-
-  - If not, we can have the Escher device generate a random token and
-    store it to Firebase, and show that token to the user on the local
-    WiFi AP during initial setup.
-
-  - After the device has been configured and is on the Internet, the
-    user can go to teamsidney.com/escher and plug in that token to
-    "claim" the device as their own.
-
-- Device checks in periodically and stores its last checkin time,
-  firmware version, status, etc. to Firebase.
-
-  - This would possibly require a dynamic rule to give a certain user
-    ID permission to read the part of the database associated with
-    device tokens that they own. 
-
-  - Alternately might need a Cloud Function running server-side to
-    translate the token into a database write associated with a key
-    owned by a given user. Need to think about this.
-
-- To print: Two options.
-
-  1. Store record in Firebase (associated with device token) telling
-     it which file to print, URL of file location, etc. Device polls
-     this to initiate printing job. Problem: High latency due to
-     polling.
-
-  2. Web page directy talks to device using its IP address -- assuming
-     they are on the same network. Requires a server on the device to
-     listen for incoming connections. Problem: Higher complexity,
-     more finicky if the device isn't on the same LAN as the client.
-
-     https://github.com/espressif/arduino-esp32/blob/master/libraries/WiFi/examples/SimpleWiFiServer/SimpleWiFiServer.ino
-
-
-## Can I use BLE for direct communication to the device?
-
-https://github.com/nkolban/ESP32_BLE_Arduino/blob/b232e7f5f0e87f36afbc2f4e03a2c49c48dd47bc/examples/BLE_server/BLE_server.ino
-
-This creates a BLE server on the ESP32 that I can read via a "Custom
-Service" which provides a value of "Hello World says Neil"
-
-What I need to figure out is whether Chrome's Web Bluetooth support
-can even access this, and then how to use it.
-
-This doesn't seem to work from Chrome on my phone or my Mac (maybe I
-am doing something wrong).
-
-Since the simple WiFi server is easy enough that seems like a better
-approach.
-
-## Questions to resolve:
-
-* Can I have the ESP32 devices authenticate to Firebase as an existing
-  user?
-
-* How to use the Firestore REST API? https://firebase.google.com/docs/firestore/use-rest-api
-
-* Can the webpage on teamsidney.com issue XHR requests to the local
-  device using its IP address? (Does SOP or anything prevent this?)
-
-* How to store configuration data in flash (for bootstrapping)
-
-## Using REST API
+Using Firestore REST API:
 
 https://firebase.google.com/docs/firestore/use-rest-api
 
