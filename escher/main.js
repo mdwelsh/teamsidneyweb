@@ -121,6 +121,13 @@ function setup() {
     $("#uploadGcode").get()[0].close();
   });
 
+  // Gcode file selector.
+  $('#fileSelect').off('change');
+  $('#fileSelect').change(function(e) {
+    console.log('File select change called:');
+    console.log(e);
+  });
+
   // Load Etch-A-Sketch background image.
   backgroundImage = new Image();
   backgroundImage.src = "EtchASketch.jpg";
@@ -155,17 +162,37 @@ function setup() {
 
 }
 
-// XXX XXX MDW STOPPED HERE.
-var gcodeFiles = {};
+// The list of Gcode files that we know about.
+var gcodeFiles = new Map();
 
+// Called when we learn about a new Gcode file.
 function addGcodeEntry(gcodeDoc) {
-  gcodeFiles.push(gcodeDoc);
+  console.log('Got doc:');
+  console.log(gcodeDoc);
+  gcodeFiles.set(gcodeDoc.filename, gcodeDoc);
+  updateGcodeSelector();
 }
 
+// Called when a Gcode file has been deleted.
 function removeGcodeEntry(gcodeDoc) {
-  // XXX 
+  gcodeFiles.delete(gcodeDoc.filename);
+  updateGcodeSelector();
 }
 
+// Update list of Gcode files in the selector UI.
+function updateGcodeSelector() {
+  var select = $("#fileSelect");
+  select.empty();
+  $('<option/>')
+    .text('')
+    .appendTo(select);
+  for (var fname of gcodeFiles.keys()) {
+    console.log('Adding: ' + fname);
+    $('<option/>')
+      .text(fname)
+      .appendTo(select);
+  }
+}
 
 var uploadedGcode = null;
 var uploadedGcodeUrl = null;
