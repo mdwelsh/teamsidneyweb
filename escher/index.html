@@ -73,15 +73,16 @@
 
   <header class="mdl-layout__header" id="tabheader">
     <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
-      <a id="devices-tab-button" href="#scroll-tab-devices" class="mdl-layout__tab is-active">Devices</a>
+      <a id="draw-tab-button" href="#scroll-tab-draw" class="mdl-layout__tab is-active">Draw</a>
       <a id="files-tab-button" href="#scroll-tab-files" class="mdl-layout__tab">Files</a>
+      <a id="devices-tab-button" href="#scroll-tab-devices" class="mdl-layout__tab">Devices</a>
       <a id="firmware-tab-button" href="#scroll-tab-firmware" class="mdl-layout__tab">Firmware</a>
     </div>
   </header>
 
   <main class="mdl-layout__content">
 
-    <section class="mdl-layout__tab-panel is-active" id="scroll-tab-devices">
+    <section class="mdl-layout__tab-panel is-active" id="scroll-tab-draw">
       <div class="tab-contents">
         <div class="mdl-grid">
 
@@ -96,6 +97,14 @@
               </div>
               <div>
                 <select class="mdl-textfield__input" id="fileSelect"></select>
+              </div>
+            </div>
+            <div id="deviceSelector" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+              <div>
+                <label for="deviceSelect" class="mdl-textfield__label">Device</label>
+              </div>
+              <div>
+                <select class="mdl-textfield__input" id="deviceSelect"></select>
               </div>
             </div>
             <div role="group">
@@ -117,8 +126,29 @@
       </div>
     </section>
 
+    <section class="mdl-layout__tab-panel" id="scroll-tab-files">
+      <div class="tab-contents">
+        Files
+        <div id="fileList" class="listgroup"></div>
+        <button id="fileUploadButton" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+          <i class="material-icons">add</i>
+        </button>
+      </div>
+    </section>
+
+    <section class="mdl-layout__tab-panel" id="scroll-tab-devices">
+      <div class="tab-contents">
+        Devices
+        <div id="deviceList" class="listgroup"></div>
+        <button id="fileUploadButton" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+          <i class="material-icons">add</i>
+        </button>
+      </div>
+    </section>
+
     <section class="mdl-layout__tab-panel" id="scroll-tab-firmware">
       <div class="tab-contents">
+        Firmware
         <div id="firmwarelist" class="listgroup"></div>
         <button id="fileUploadButton" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
           <i class="material-icons">add</i>
