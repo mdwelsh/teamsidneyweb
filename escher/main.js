@@ -219,7 +219,7 @@ var curGcodeData = null;
 
 function selectGcode(fname) {
   offset_left = 0;
-  offset_top = 0;
+  offset_bottom = 0;
   zoom = 1.0;
 
   var gcodeDoc = gcodeFiles.get(fname);
@@ -246,7 +246,7 @@ function previewGcode(gcodeData, canvas) {
   console.log('Parsed ' + waypoints.length + ' waypoints');
 
   showEtchASketch(canvas, true);
-  etch(canvas, ETCH_A_SKETCH_BBOX, waypoints, 1);
+  etch(waypoints, canvas, ETCH_A_SKETCH_BBOX, 1);
 }
 
 var uploadedGcode = null;
@@ -254,7 +254,7 @@ var uploadedGcodeUrl = null;
 
 // Code for control buttons.
 var offset_left = 0;
-var offset_top = 0;
+var offset_bottom = 0;
 var zoom = 1.0;
 
 // Called when control buttons are clicked.
@@ -267,17 +267,17 @@ function controlRightClicked() {
   showGcode();
 }
 function controlUpClicked() {
-  offset_top -= 10;
+  offset_bottom += 10;
   showGcode();
 }
 function controlDownClicked() {
-  offset_top += 10;
+  offset_bottom -= 10;
   showGcode();
 }
 
 function controlHomeClicked() {
   offset_left = 0;
-  offset_top = 0;
+  offset_bottom = 0;
   zoom = 1.0;
   showGcode();
 }
@@ -377,8 +377,38 @@ function showEtchASketch(canvas, frame) {
   }
 }
 
+// Render the given points into a set of waypoints contained within 
+// the given bounding box.
+function render(points, bbox) {
+  ret = []
+  var scaled = scaleToBbox(points, bbox);
+  scaled.forEach(function(elem) {
+    var x = elem.x;
+    var y = elem.y;
+
+    var tx = x + bbox.x + offset_left;
+    var ty = y + bbox.y + offset_bottom;
+
+    if (tx < bbox.x) {
+      tx = bbox.x;
+    }
+    if (tx > bbox.x + bbox.width) {
+      tx = bbox.x + bbox.width;
+    }
+    if (ty < bbox.y) {
+      ty = bbox.y;
+    }
+    if (ty > bbox.y + bbox.height) {
+      ty = bbox.y + bbox.height;
+    }
+
+    ret.push({x: tx, y: ty});
+  });
+  return ret;
+}
+
 // Draw the given points on the canvas with a given linewidth.
-function etch(canvas, bbox, points, lineWidth) {
+function etch(points, canvas, bbox, lineWidth) {
   console.log('Etching ' + points.length +
       ' points onto bbox ' + JSON.stringify(bbox));
 
@@ -388,8 +418,8 @@ function etch(canvas, bbox, points, lineWidth) {
   //ctx.strokeStyle = 'blue';
   //ctx.lineWidth = 5;
   //ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
-
-  var scaled = scaleToBbox(points, bbox);
+  
+  var rendered = render(points, bbox);
 
   ctx.beginPath();
   ctx.strokeStyle = 'black';
@@ -397,16 +427,13 @@ function etch(canvas, bbox, points, lineWidth) {
   // Start at origin.
   ctx.moveTo(bbox.x, (bbox.y + bbox.height));
 
-  scaled.forEach(function(elem) {
+  rendered.forEach(function(elem) {
     var x = elem.x;
     var y = elem.y;
 
-    // First flip the y-axis.
-    y = bbox.height - y;
-
-    var tx = x + bbox.x + offset_left;
-    var ty = y + bbox.y + offset_top;
-    ctx.lineTo(tx, ty);
+    // Flip the y-axis.
+    y = bbox.height - (y - bbox.y) + bbox.y;
+    ctx.lineTo(x, y);
   });
   ctx.stroke();
 
