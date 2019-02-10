@@ -72,11 +72,9 @@ function doArc(posx, posy, x, y, cx, cy, cw) {
 }
 
 function parseGcode(data) {
-  var enc = new TextDecoder("utf-8");
-  var s = enc.decode(data);
 
   var waypoints = [];
-  var lines = s.split(/\r?\n/);
+  var lines = data.split(/\r?\n/);
 
   lines.forEach(function(line) {
     var re = /^(G0[01]) X([\d\.]+) Y([\d\.]+)/;

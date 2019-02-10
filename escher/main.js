@@ -125,7 +125,7 @@ function setup() {
   $('#fileSelect').off('change');
   $('#fileSelect').change(function(e) {
     console.log('File select change called:');
-    console.log(e);
+    selectGcode(this.value);
   });
 
   // Load Etch-A-Sketch background image.
@@ -158,8 +158,6 @@ function setup() {
     console.log("Error getting token:");
     console.log(error);
   });
-
-
 }
 
 // The list of Gcode files that we know about.
@@ -192,6 +190,46 @@ function updateGcodeSelector() {
       .text(fname)
       .appendTo(select);
   }
+}
+
+function selectGcode(fname) {
+  var gcodeDoc = gcodeFiles.get(fname);
+  if (gcodeDoc == null) {
+    return;
+  }
+
+  $.get(gcodeDoc.url, data => {
+    previewGcode(data, $("#etchCanvas").get(0));
+  })
+  .fail(err => {
+    showError('Error fetching gcode: ' + err);
+  });
+}
+
+function fetchGcode(url) {
+  console.log('Fetching gcode: ' + url);
+
+  ret = null;
+
+  return $.get(url, data => {
+    console.log('Done');
+    ret = data;
+  }).fail(err => {
+    console.log('Error');
+  });
+}
+
+function previewGcode(gcodeData, canvas) {
+  var waypoints = parseGcode(gcodeData);
+  if (waypoints.length == 0) {
+    console.log('Error: Cannot parse Gcode');
+    showError('Error: Cannot parse Gcode');
+    return;
+  }
+  console.log('Parsed ' + waypoints.length + ' waypoints');
+
+  showEtchASketch(canvas, true);
+  etch(canvas, ETCH_A_SKETCH_BBOX, waypoints, 1);
 }
 
 var uploadedGcode = null;
@@ -229,27 +267,11 @@ function uploadGcodeFileSelected(file) {
 function uploadGcodePreview(data) {
   console.log('Finished reading ' + uploadedGcode.name);
 
+  var enc = new TextDecoder("utf-8");
+  var gcode = enc.decode(data);
+
   // Parse and preview Gcode.
-  var waypoints = parseGcode(data);
-  if (waypoints.length == 0) {
-    console.log('Error: Cannot parse Gcode');
-    $('#uploadGcodeError').text('Error - cannot parse Gcode.');
-    return;
-  }
-  console.log('Parsed ' + waypoints.length + ' waypoints from ' + uploadedGcode.name);
-  console.log(waypoints);
-
-  var canvas = $("#previewCanvas").get(0);
-  // Whole canvas.
-  var bbox = {
-    x: 0,
-    y: 0,
-    width: canvas.width,
-    height: canvas.height,
-  };
-  showEtchASketch(canvas, true);
-  etch(canvas, ETCH_A_SKETCH_BBOX, waypoints, 2);
-
+  previewGcode(gcode, $("#previewCanvas").get(0));
   $('#uploadGcodeConfirm').prop('disabled', false);
 }
 
