@@ -77,7 +77,7 @@ body {
   float: right;
 }
 
-/* Devices tab elements */
+/* Draw tab elements */
 #etchCanvas {
 }
 
@@ -94,6 +94,11 @@ body {
   margin-bottom: 0;
   z-index: 998;
 }
+
+#controlButtons {
+  margin-top: 20px;
+}
+
 
 /* Upload Gcode dialog */
 #uploadGcode {

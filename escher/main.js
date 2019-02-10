@@ -128,6 +128,28 @@ function setup() {
     selectGcode(this.value);
   });
 
+  // Control buttons.
+  $('#controlLeft').off('click');
+  $('#controlLeft').click(function(e) {
+    controlLeftClicked();
+  });
+  $('#controlRight').off('click');
+  $('#controlRight').click(function(e) {
+    controlRightClicked();
+  });
+  $('#controlUp').off('click');
+  $('#controlUp').click(function(e) {
+    controlUpClicked();
+  });
+  $('#controlDown').off('click');
+  $('#controlDown').click(function(e) {
+    controlDownClicked();
+  });
+  $('#controlHome').off('click');
+  $('#controlHome').click(function(e) {
+    controlHomeClicked();
+  });
+
   // Load Etch-A-Sketch background image.
   backgroundImage = new Image();
   backgroundImage.src = "EtchASketch.jpg";
@@ -192,30 +214,25 @@ function updateGcodeSelector() {
   }
 }
 
+// The currently selected Gcode data object.
+var curGcodeData = null;
+
 function selectGcode(fname) {
+  offset_left = 0;
+  offset_top = 0;
+  zoom = 1.0;
+
   var gcodeDoc = gcodeFiles.get(fname);
   if (gcodeDoc == null) {
     return;
   }
 
   $.get(gcodeDoc.url, data => {
-    previewGcode(data, $("#etchCanvas").get(0));
+    curGcodeData = data;
+    showGcode();
   })
   .fail(err => {
     showError('Error fetching gcode: ' + err);
-  });
-}
-
-function fetchGcode(url) {
-  console.log('Fetching gcode: ' + url);
-
-  ret = null;
-
-  return $.get(url, data => {
-    console.log('Done');
-    ret = data;
-  }).fail(err => {
-    console.log('Error');
   });
 }
 
@@ -234,6 +251,41 @@ function previewGcode(gcodeData, canvas) {
 
 var uploadedGcode = null;
 var uploadedGcodeUrl = null;
+
+// Code for control buttons.
+var offset_left = 0;
+var offset_top = 0;
+var zoom = 1.0;
+
+// Called when control buttons are clicked.
+function controlLeftClicked() {
+  offset_left -= 10;
+  showGcode();
+}
+function controlRightClicked() {
+  offset_left += 10;
+  showGcode();
+}
+function controlUpClicked() {
+  offset_top -= 10;
+  showGcode();
+}
+function controlDownClicked() {
+  offset_top += 10;
+  showGcode();
+}
+
+function controlHomeClicked() {
+  offset_left = 0;
+  offset_top = 0;
+  zoom = 1.0;
+  showGcode();
+}
+
+function showGcode() {
+  previewGcode(curGcodeData, $("#etchCanvas").get(0));
+}
+
 
 // Called when Gcode upload dialog is opened.
 function uploadGcodeStart() {
@@ -333,9 +385,9 @@ function etch(canvas, bbox, points, lineWidth) {
   var ctx = canvas.getContext("2d");
 
   // Debugging - draw bounding box.
-  ctx.strokeStyle = 'blue';
-  ctx.lineWidth = 5;
-  ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
+  //ctx.strokeStyle = 'blue';
+  //ctx.lineWidth = 5;
+  //ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
 
   var scaled = scaleToBbox(points, bbox);
 
@@ -352,8 +404,8 @@ function etch(canvas, bbox, points, lineWidth) {
     // First flip the y-axis.
     y = bbox.height - y;
 
-    var tx = x + bbox.x;
-    var ty = y + bbox.y;
+    var tx = x + bbox.x + offset_left;
+    var ty = y + bbox.y + offset_top;
     ctx.lineTo(tx, ty);
   });
   ctx.stroke();
