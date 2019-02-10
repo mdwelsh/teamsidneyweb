@@ -124,8 +124,12 @@ function setup() {
   // Gcode file selector.
   $('#fileSelect').off('change');
   $('#fileSelect').change(function(e) {
-    console.log('File select change called:');
     selectGcode(this.value);
+  });
+  // Device selector.
+  $('#deviceSelect').off('change');
+  $('#deviceSelect').change(function(e) {
+    selectDevice(this.value);
   });
 
   // Control buttons.
@@ -158,6 +162,16 @@ function setup() {
     controlHomeClicked();
   });
 
+  // Action bttons.
+  $('#drawButton').off('click');
+  $('#drawButton').click(function(e) {
+    drawButtonClicked();
+  });
+  $('#stopButton').off('click');
+  $('#stopButton').click(function(e) {
+    stopButtonClicked();
+  });
+
   // Load Etch-A-Sketch background image.
   backgroundImage = new Image();
   backgroundImage.src = "EtchASketch.jpg";
@@ -174,6 +188,19 @@ function setup() {
             }
             if (change.type === "removed") {
               removeGcodeEntry(change.doc.data());
+            }
+        });
+    });
+
+  // Set up listener for device metadata updates.
+  db.collection("escher").doc("root").collection("devices")
+    .onSnapshot(function(snapshot) {
+        snapshot.docChanges().forEach(function(change) {
+            if (change.type === "added") {
+              addDevice(change.doc.data());
+            }
+            if (change.type === "removed") {
+              removeDevice(change.doc.data());
             }
         });
     });
@@ -222,10 +249,51 @@ function updateGcodeSelector() {
   }
 }
 
+// The list of devices thta we know about.
+var devices = new Map();
+
+// Called when we learn about a new device.
+function addDevice(deviceDoc) {
+  devices.set(deviceDoc.mac, deviceDoc);
+  updateDeviceSelector();
+}
+
+// Called when a device has been deleted.
+function removeDevice(deviceDoc) {
+  devices.delete(deviceDoc.mac);
+  updateDeviceSelector();
+}
+
+// Update list of devices in the selector UI.
+function updateDeviceSelector() {
+  var select = $("#deviceSelect");
+  select.empty();
+  $('<option/>')
+    .text('')
+    .appendTo(select);
+  for (var mac of devices.keys()) {
+    console.log('Adding: ' + mac);
+    var ds = 'never';
+    var d = devices.get(mac);
+    if (d != null) {
+      var ts = d.timestamp;
+      if (ts != null) {
+        var m = new moment(ts);
+        ds = m.format(m.fromNow());
+      }
+    }
+    $('<option/>')
+      .text(mac + ' (last seen ' + ds + ')')
+      .appendTo(select);
+  }
+}
+
 // The currently selected Gcode data object.
 var curGcodeData = null;
 
 function selectGcode(fname) {
+  curGcodeData = null;
+
   offset_left = 0;
   offset_bottom = 0;
   zoom = 1.0;
@@ -242,8 +310,64 @@ function selectGcode(fname) {
   .fail(err => {
     showError('Error fetching gcode: ' + err);
   });
+  updateDrawButton();
 }
 
+// The currently selected device.
+var curDevice = null;
+
+function selectDevice(value) {
+  curDevice = null;
+
+  console.log("Selected device: " + value);
+  var mac = value.split(' ')[0];
+  var device = devices.get(mac);
+  curDevice = device;
+  updateDrawButton();
+}
+
+// Update Draw button state.
+function updateDrawButton() {
+  var btn = $('#drawButton');
+  if (curGcodeData != null && curDevice != null) {
+    btn.prop('disabled', false);
+  } else {
+    btn.prop('disabled', true);
+  }
+}
+
+// Start drawing.
+function drawButtonClicked() {
+  var bbox = {
+    x: 0,
+    y: 0,
+    width: curDevice.width,
+    height: curDevice.height,
+  };
+  var waypoints = parseGcode(curGcodeData);
+  if (waypoints == null) {
+    showError('Unable to parse Gcode!');
+  }
+  var rendered = render(waypoints, bbox);
+  console.log('Rendered for device bbox ' + bbox + ':');
+  console.log(rendered);
+
+  startDrawing(rendered, curDevice)
+    .then(() => {
+      showMessage('Drawing started on ' + curDevice.mac)
+    });
+}
+
+function startDrawing(points, device) {
+  console.log('Starting drawing of ' + points.length + ' points on ' + device.mac);
+  // TODO(mdw) - XHR to device and send points.
+  return new Promise((resolve, reject) => {
+    // TODO(mdw) - Fill this in.
+    resolve();
+  });
+}
+
+// Show the given GCode on the canvas.
 function previewGcode(gcodeData, canvas) {
   var waypoints = parseGcode(gcodeData);
   if (waypoints.length == 0) {
@@ -257,8 +381,6 @@ function previewGcode(gcodeData, canvas) {
   etch(waypoints, canvas, ETCH_A_SKETCH_BBOX, 1);
 }
 
-var uploadedGcode = null;
-var uploadedGcodeUrl = null;
 
 // Code for control buttons.
 var offset_left = 0;
@@ -301,6 +423,9 @@ function showGcode() {
   previewGcode(curGcodeData, $("#etchCanvas").get(0));
 }
 
+
+var uploadedGcode = null;
+var uploadedGcodeUrl = null;
 
 // Called when Gcode upload dialog is opened.
 function uploadGcodeStart() {
@@ -376,7 +501,6 @@ function uploadGcodeDoUpload() {
     });
   });
 }
-
 
 // Paint the Etch-a-Sketch image on the given canvas.
 function showEtchASketch(canvas, frame) {
