@@ -365,6 +365,8 @@ function startDrawing(points, device) {
     // TODO(mdw) - Fill this in.
     resolve();
   });
+  // XXX MDW - Need to track when device is busy so stop button is active,
+  // and draw button is disabled during that time.
 }
 
 // Show the given GCode on the canvas.
