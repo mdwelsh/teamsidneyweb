@@ -145,6 +145,14 @@ function setup() {
   $('#controlDown').click(function(e) {
     controlDownClicked();
   });
+  $('#controlZoomIn').off('click');
+  $('#controlZoomIn').click(function(e) {
+    controlZoomInClicked();
+  });
+  $('#controlZoomOut').off('click');
+  $('#controlZoomOut').click(function(e) {
+    controlZoomOutClicked();
+  });
   $('#controlHome').off('click');
   $('#controlHome').click(function(e) {
     controlHomeClicked();
@@ -274,7 +282,14 @@ function controlDownClicked() {
   offset_bottom -= 10;
   showGcode();
 }
-
+function controlZoomInClicked() {
+  zoom += 0.1;
+  showGcode();
+}
+function controlZoomOutClicked() {
+  zoom -= 0.1;
+  showGcode();
+}
 function controlHomeClicked() {
   offset_left = 0;
   offset_bottom = 0;
@@ -386,8 +401,8 @@ function render(points, bbox) {
     var x = elem.x;
     var y = elem.y;
 
-    var tx = x + bbox.x + offset_left;
-    var ty = y + bbox.y + offset_bottom;
+    var tx = zoom * (x + bbox.x + offset_left);
+    var ty = zoom * (y + bbox.y + offset_bottom);
 
     if (tx < bbox.x) {
       tx = bbox.x;
