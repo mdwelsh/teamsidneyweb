@@ -182,28 +182,28 @@ function setup() {
   // Set up listener for Gcode metadata updates.
   db.collection("escher").doc("root").collection("gcode")
     .onSnapshot(function(snapshot) {
-        snapshot.docChanges().forEach(function(change) {
-            if (change.type === "added") {
-              addGcodeEntry(change.doc.data());
-            }
-            if (change.type === "removed") {
-              removeGcodeEntry(change.doc.data());
-            }
-        });
-    });
+      snapshot.docChanges().forEach(function(change) {
+        if (change.type === "added") {
+          addGcodeEntry(change.doc.data());
+        }
+        if (change.type === "removed") {
+          removeGcodeEntry(change.doc.data());
+        }
+     });
+  });
 
   // Set up listener for device metadata updates.
   db.collection("escher").doc("root").collection("devices")
     .onSnapshot(function(snapshot) {
-        snapshot.docChanges().forEach(function(change) {
-            if (change.type === "added") {
-              addDevice(change.doc.data());
-            }
-            if (change.type === "removed") {
-              removeDevice(change.doc.data());
-            }
-        });
-    });
+      snapshot.docChanges().forEach(function(change) {
+        if (change.type === "added") {
+          addDevice(change.doc.data());
+        }
+        if (change.type === "removed") {
+          removeDevice(change.doc.data());
+        }
+     });
+  });
 
   // Debugging - get user token.
   
@@ -222,8 +222,6 @@ var gcodeFiles = new Map();
 
 // Called when we learn about a new Gcode file.
 function addGcodeEntry(gcodeDoc) {
-  console.log('Got doc:');
-  console.log(gcodeDoc);
   gcodeFiles.set(gcodeDoc.filename, gcodeDoc);
   updateGcodeSelector();
 }
@@ -242,7 +240,6 @@ function updateGcodeSelector() {
     .text('')
     .appendTo(select);
   for (var fname of gcodeFiles.keys()) {
-    console.log('Adding: ' + fname);
     $('<option/>')
       .text(fname)
       .appendTo(select);
@@ -272,14 +269,13 @@ function updateDeviceSelector() {
     .text('')
     .appendTo(select);
   for (var mac of devices.keys()) {
-    console.log('Adding: ' + mac);
     var ds = 'never';
     var d = devices.get(mac);
     if (d != null) {
-      var ts = d.timestamp;
+      var ts = d.updateTime;
       if (ts != null) {
-        var m = new moment(ts);
-        ds = m.format(m.fromNow());
+        var m = moment.unix(ts.seconds);
+        ds = m.fromNow();
       }
     }
     $('<option/>')
@@ -306,11 +302,13 @@ function selectGcode(fname) {
   $.get(gcodeDoc.url, data => {
     curGcodeData = data;
     showGcode();
+    updateDrawButton();
   })
   .fail(err => {
     showError('Error fetching gcode: ' + err);
+    curGcodeData = null;
+    updateDrawButton();
   });
-  updateDrawButton();
 }
 
 // The currently selected device.
@@ -341,8 +339,9 @@ function drawButtonClicked() {
   var bbox = {
     x: 0,
     y: 0,
-    width: curDevice.width,
-    height: curDevice.height,
+    // TODO(mdw) - Provide interface to configure this.
+    width: 900,
+    height: 620,
   };
   var waypoints = parseGcode(curGcodeData);
   if (waypoints == null) {
@@ -359,14 +358,39 @@ function drawButtonClicked() {
 }
 
 function startDrawing(points, device) {
-  console.log('Starting drawing of ' + points.length + ' points on ' + device.mac);
-  // TODO(mdw) - XHR to device and send points.
-  return new Promise((resolve, reject) => {
-    // TODO(mdw) - Fill this in.
-    resolve();
+  console.log('Starting drawing of ' + points.length + ' points on ' +
+    device.mac + ' with ip ' + device.ip);
+
+  var controlMsg = 'START\n';
+  points.forEach(function(p) {
+    controlMsg += 'MOVE ' + Math.floor(p.x) + ' ' + Math.floor(p.y) + '\n';
   });
-  // XXX MDW - Need to track when device is busy so stop button is active,
-  // and draw button is disabled during that time.
+  controlMsg += 'END\n';
+
+  // https://developer.mozilla.org/en-US/docs/Web/API/FormData/Using_FormData_Objects
+
+  var formData = new FormData();
+  var action = '/upload';
+  var blob = new Blob([controlMsg], { type: "text/plain"});
+  formData.append("file", blob, "cmddata.txt");
+
+  var url = 'http://' + device.ip + '/upload';
+
+  return $.ajax({
+    url: url,
+    data: formData,
+    type: 'POST',
+    contentType: false,
+    processData: false,
+  })
+  .done(function() {
+    console.log('Ajax done!');
+    showMessage('Uploaded command file to device at ' + device.ip);
+  })
+  .fail(function() {
+    console.log('Ajax fail!');
+    showError('Unable to upload command file');
+  });
 }
 
 // Show the given GCode on the canvas.

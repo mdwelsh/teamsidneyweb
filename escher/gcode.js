@@ -137,13 +137,8 @@ function scaleToBbox(pts, bbox) {
   var maxy = pts.reduce(function(prev, curr) {
     return prev.y > curr.y ? prev : curr;
   });
-  console.log('minx ' + minx.x);
-  console.log('maxx ' + maxx.x);
-  console.log('miny ' + miny.y);
-  console.log('maxy ' + maxy.y);
   var dx = maxx.x - minx.x;
   var dy = maxy.y - miny.y;
-  console.log('dx ' + dx + ' dy ' + dy);
   x_y_ratio = bbox.width/bbox.height;
   // Scale longest axis (in proportion to bbox size) to fit.
   var scale;
@@ -152,7 +147,6 @@ function scaleToBbox(pts, bbox) {
   } else {
     scale = bbox.height / dy;
   }
-  console.log('scale ' + scale);
 
   var ret = [];
   pts.forEach(function(pt) {
