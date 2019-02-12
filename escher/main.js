@@ -357,6 +357,24 @@ function drawButtonClicked() {
     });
 }
 
+// https://stackoverflow.com/questions/19126994/what-is-the-cleanest-way-to-get-the-progress-of-jquery-ajax-request
+function makeUploadXhr() {
+  var xhr = new window.XMLHttpRequest();
+  xhr.upload.addEventListener("progress", function(e) {
+    if (e.lengthComputable) {
+      var percentComplete = e.loaded / e.total;
+      console.log("Upload progress " + percentComplete);
+    }
+  }, false);
+  xhr.addEventListener("progress", function(e) {
+    if (e.lengthComputable) {
+      var percentComplete = e.loaded / e.total;
+      console.log("Progress " + percentComplete);
+    }
+  }, false);
+  return xhr;
+}
+
 function startDrawing(points, device) {
   console.log('Starting drawing of ' + points.length + ' points on ' +
     device.mac + ' with ip ' + device.ip);
@@ -367,7 +385,10 @@ function startDrawing(points, device) {
   });
   controlMsg += 'END\n';
 
+  // Fake a file upload via FormData:
   // https://developer.mozilla.org/en-US/docs/Web/API/FormData/Using_FormData_Objects
+  // This is necessary because we have great built-in support for large file uploads
+  // on the ESP32, so we want to make use of that.
 
   var formData = new FormData();
   var action = '/upload';
@@ -377,6 +398,7 @@ function startDrawing(points, device) {
   var url = 'http://' + device.ip + '/upload';
 
   return $.ajax({
+    xhr: makeUploadXhr,
     url: url,
     data: formData,
     type: 'POST',
