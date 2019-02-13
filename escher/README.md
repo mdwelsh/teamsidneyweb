@@ -1,7 +1,9 @@
 ## TODO:
 
 * Add text box to change file name before uploading
-* Populate file list from database
+* Write Arduino-side code for etching control
+* Add ping method to Arduino code so web page can check status and
+  liveness of device.
 
 ## Design for device registration
 
