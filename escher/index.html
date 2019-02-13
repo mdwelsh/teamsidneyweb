@@ -73,7 +73,7 @@
 
   <header class="mdl-layout__header" id="tabheader">
     <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
-      <a id="draw-tab-button" href="#scroll-tab-draw" class="mdl-layout__tab is-active">Draw</a>
+      <a id="etch-tab-button" href="#scroll-tab-etch" class="mdl-layout__tab is-active">Etch</a>
       <a id="files-tab-button" href="#scroll-tab-files" class="mdl-layout__tab">Files</a>
       <a id="devices-tab-button" href="#scroll-tab-devices" class="mdl-layout__tab">Devices</a>
       <a id="firmware-tab-button" href="#scroll-tab-firmware" class="mdl-layout__tab">Firmware</a>
@@ -82,7 +82,7 @@
 
   <main class="mdl-layout__content">
 
-    <section class="mdl-layout__tab-panel is-active" id="scroll-tab-draw">
+    <section class="mdl-layout__tab-panel is-active" id="scroll-tab-etch">
       <div class="tab-contents">
         <div class="mdl-grid">
 
@@ -108,7 +108,7 @@
               </div>
             </div>
             <div role="group">
-              <button id="drawButton" type="button" class="mdl-button mdl-button--raised mdl-button--accent" disabled>Draw!</button>
+              <button id="etchButton" type="button" class="mdl-button mdl-button--raised mdl-button--accent" disabled>Etch!</button>
               <button id="stopButton" type="button" class="mdl-button mdl-button--raised mdl-button--colored" disabled>Stop</button>
             </div>
 
@@ -195,6 +195,27 @@
   <div role="group">
     <button id="uploadGcodeCancel" type="button" class="mdl-button">Cancel</button>
     <button id="uploadGcodeConfirm" type="button" class="mdl-button mdl-button--raised mdl-button--colored" disabled>Add</button>
+  </div>
+</div>
+</dialog>
+
+<!-- Etch control modal -->
+<dialog id="etchControl" class="mdl-dialog">
+<div class="etchControlHeader">
+  <div class="mdl-dialog__title" id="etchControlTitle">
+    Ready to Etch?
+  </div>
+</div>
+<!-- Etch control body -->
+<div class="mdl-dialog__content" id="etchControlBody">
+  <div class="etchControlMessage" id="etchUploadingMessage">Uploading control data...</div>
+  <div id="etchControlSpinner" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
+  <div class="etchControlMessage" id="etchReadyMessage">Ready to Etch</div>
+</div>
+<div class="mdl-dialog__actions">
+  <div role="group">
+    <button id="etchControlCancel" type="button" class="mdl-button">Cancel</button>
+    <button id="etchControlStart" type="button" class="mdl-button mdl-button--raised mdl-button--colored" disabled>Start</button>
   </div>
 </div>
 </dialog>

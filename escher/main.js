@@ -91,7 +91,6 @@ function setup() {
   toggleLoginState();
 
   // File upload dialog.
-
   $('#fileUploadButton').off('click');
   $('#fileUploadButton').click(function (e) {
     console.log('fileUploadButton clicked');
@@ -119,6 +118,20 @@ function setup() {
   $('#uploadGcodeClose').click(function (e) {
     console.log('uploadGcodeClose clicked');
     $("#uploadGcode").get()[0].close();
+  });
+
+  // Etch control dialog.
+  $('#etchControlStart').off('click');
+  $('#etchControlStart').click(function (e) {
+    etchControlStartClicked();
+  });
+  $('#etchControlCancel').off('click');
+  $('#etchControlCancel').click(function (e) {
+    $("#etchControl").get()[0].close();
+  });
+  $('#etchControlClose').off('click');
+  $('#etchControlClose').click(function (e) {
+    $("#etchControl").get()[0].close();
   });
 
   // Gcode file selector.
@@ -163,9 +176,9 @@ function setup() {
   });
 
   // Action bttons.
-  $('#drawButton').off('click');
-  $('#drawButton').click(function(e) {
-    drawButtonClicked();
+  $('#etchButton').off('click');
+  $('#etchButton').click(function(e) {
+    etchButtonClicked();
   });
   $('#stopButton').off('click');
   $('#stopButton').click(function(e) {
@@ -302,12 +315,12 @@ function selectGcode(fname) {
   $.get(gcodeDoc.url, data => {
     curGcodeData = data;
     showGcode();
-    updateDrawButton();
+    updateEtchButton();
   })
   .fail(err => {
     showError('Error fetching gcode: ' + err);
     curGcodeData = null;
-    updateDrawButton();
+    updateEtchButton();
   });
 }
 
@@ -321,21 +334,40 @@ function selectDevice(value) {
   var mac = value.split(' ')[0];
   var device = devices.get(mac);
   curDevice = device;
-  updateDrawButton();
+  updateEtchButton();
 }
 
-// Update Draw button state.
-function updateDrawButton() {
-  var btn = $('#drawButton');
+// Update Etch button state.
+function updateEtchButton() {
+  var ebtn = $('#etchButton');
+  var sbtn = $('#stopButton');
+
+  // Only allow etching to be started if both Gcode and device are selected.
   if (curGcodeData != null && curDevice != null) {
-    btn.prop('disabled', false);
+    ebtn.prop('disabled', false);
   } else {
-    btn.prop('disabled', true);
+    ebtn.prop('disabled', true);
+  }
+
+  // Always allow stop to be issued even when not etching.
+  if (curDevice != null) {
+    sbtn.prop('disabled', false);
+  } else {
+    sbtn.prop('disabled', true);
   }
 }
 
-// Start drawing.
-function drawButtonClicked() {
+// Called when Etch button is clicked.
+function etchButtonClicked() {
+  // Show the etch control dialog.
+  var btn = $('#etchControlStart');
+  btn.prop('disabled', true);
+  $('#etchControlSpinner').show();
+  $('#etchUploadingMessage').show();
+  $('#etchReadyMessage').hide();
+  $("#etchControl").get(0).showModal();
+
+  // Render the Gcode to commands for the Etch-a-Sketch.
   var bbox = {
     x: 0,
     y: 0,
@@ -351,10 +383,13 @@ function drawButtonClicked() {
   console.log('Rendered for device bbox ' + bbox + ':');
   console.log(rendered);
 
-  startDrawing(rendered, curDevice)
-    .then(() => {
-      showMessage('Drawing started on ' + curDevice.mac)
-    });
+  // Upload the command file.
+  uploadCommandFile(rendered, curDevice).then(() => {
+    btn.prop('disabled', false);
+    $('#etchControlSpinner').hide();
+    $('#etchUploadingMessage').hide();
+    $('#etchReadyMessage').show();
+  });
 }
 
 // https://stackoverflow.com/questions/19126994/what-is-the-cleanest-way-to-get-the-progress-of-jquery-ajax-request
@@ -375,7 +410,7 @@ function makeUploadXhr() {
   return xhr;
 }
 
-function startDrawing(points, device) {
+function uploadCommandFile(points, device) {
   console.log('Starting drawing of ' + points.length + ' points on ' +
     device.mac + ' with ip ' + device.ip);
 
@@ -412,6 +447,39 @@ function startDrawing(points, device) {
   .fail(function() {
     console.log('Ajax fail!');
     showError('Unable to upload command file');
+    $("#etchControl").get()[0].close();
+  });
+}
+
+// Called when etch control start button is clicked.
+function etchControlStartClicked() {
+  if (curDevice == null) {
+    showError('No device selected');
+    return;
+  }
+  var url = 'http://' + curDevice.ip + '/etch';
+  $.get(url, data => {
+    $("#etchControl").get()[0].close();
+    showMessage('Etching started!');
+  })
+  .fail(err => {
+    $("#etchControl").get()[0].close();
+    showError('Error starting etch: ' + err);
+  });
+}
+
+// Called when stop button is clicked.
+function stopButtonClicked() {
+  if (curDevice == null) {
+    showError('No device selected');
+    return;
+  }
+  var url = 'http://' + curDevice.ip + '/pause';
+  $.get(url, data => {
+    showMessage('Etching stopped!');
+  })
+  .fail(err => {
+    showError('Error pausing: ' + err);
   });
 }
 
