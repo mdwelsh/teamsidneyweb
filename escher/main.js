@@ -3,6 +3,15 @@
 var provider = new firebase.auth.GoogleAuthProvider();
 var db = firebase.firestore();
 
+// Show/hide appropriate section of UI based on login state.
+firebase.auth().onAuthStateChanged(firebaseUser => {
+  if (firebaseUser) {
+    showLoggedInUI();
+  } else {
+    showLoggedOutUI();
+  }
+});
+
 // Image with Etch-a-Sketch background.
 var backgroundImage;
 
@@ -54,15 +63,63 @@ function logout() {
 
 // Toggle login buttons.
 function toggleLoginState() {
-  if (currentUser() == null) {
-    // Not logged in yet.
-    $('#login').show();
-    $('#logout').hide();
-  } else {
-    // Already logged in.
-    $('#login').hide();
-    $('#logout').show();
-  }
+//  if (currentUser() == null) {
+//    // Not logged in yet.
+//    $('#login').show();
+//    $('#logout').hide();
+//  } else {
+//    // Already logged in.
+//    $('#login').hide();
+//    $('#logout').show();
+//  }
+}
+
+function showLoggedInUI() {
+  $('#login').hide();
+  $('#logout').show();
+
+  // Enable tab links.
+  $('#etch-tab-button').attr('href', '#scroll-tab-etch');
+  $('#files-tab-button').attr('href', '#scroll-tab-files');
+  $('#devices-tab-button').attr('href', '#scroll-tab-devices');
+  $('#firmware-tab-button').attr('href', '#scroll-tab-firmware');
+
+  // Make the etch tab active.
+  $('#etch-tab-button').addClass('is-active');
+  $('#files-tab-button').removeClass('is-active');
+  $('#devices-tab-button').removeClass('is-active');
+  $('#firmware-tab-button').removeClass('is-active');
+  $('#about-tab-button').removeClass('is-active');
+
+  $('#scroll-tab-etch').addClass('is-active');
+  $('#scroll-tab-files').removeClass('is-active');
+  $('#scroll-tab-devices').removeClass('is-active');
+  $('#scroll-tab-firmware').removeClass('is-active');
+  $('#scroll-tab-about').removeClass('is-active');
+}
+
+function showLoggedOutUI() {
+  $('#login').show();
+  $('#logout').hide();
+
+  // Disable tab links.
+  $('#etch-tab-button').attr('href', '');
+  $('#files-tab-button').attr('href', '');
+  $('#devices-tab-button').attr('href', '');
+  $('#firmware-tab-button').attr('href', '');
+
+  // Make the about tab active.
+  $('#etch-tab-button').removeClass('is-active');
+  $('#files-tab-button').removeClass('is-active');
+  $('#devices-tab-button').removeClass('is-active');
+  $('#firmware-tab-button').removeClass('is-active');
+  $('#about-tab-button').addClass('is-active');
+
+  $('#scroll-tab-etch').removeClass('is-active');
+  $('#scroll-tab-files').removeClass('is-active');
+  $('#scroll-tab-devices').removeClass('is-active');
+  $('#scroll-tab-firmware').removeClass('is-active');
+  $('#scroll-tab-about').addClass('is-active');
 }
 
 // Callback when signin complete.
@@ -190,6 +247,8 @@ function setup() {
   backgroundImage.src = "EtchASketch.jpg";
   $(backgroundImage).load(function () {
     showEtchASketch($("#etchCanvas").get(0), true);
+    showEtchASketch($("#aboutCanvas").get(0), true);
+    showAboutPreview();
   });
 
   // Set up listener for Gcode metadata updates.
@@ -297,6 +356,13 @@ function updateDeviceSelector() {
   }
 }
 
+// Show the static Escher logo on the about canvas.
+function showAboutPreview() {
+  $.get('/escher-logo.gcode', data => {
+    previewGcode(data, $("#aboutCanvas").get(0), 80, 230, 0.9);
+  });
+}
+
 // The currently selected Gcode data object.
 var curGcodeData = null;
 
@@ -379,7 +445,7 @@ function etchButtonClicked() {
   if (waypoints == null) {
     showError('Unable to parse Gcode!');
   }
-  var rendered = render(waypoints, bbox);
+  var rendered = render(waypoints, bbox, offset_left, offset_bottom, zoom);
   console.log('Rendered for device bbox ' + bbox + ':');
   console.log(rendered);
 
@@ -484,7 +550,7 @@ function stopButtonClicked() {
 }
 
 // Show the given GCode on the canvas.
-function previewGcode(gcodeData, canvas) {
+function previewGcode(gcodeData, canvas, offsetLeft, offsetBottom, zoomLevel) {
   var waypoints = parseGcode(gcodeData);
   if (waypoints.length == 0) {
     console.log('Error: Cannot parse Gcode');
@@ -494,7 +560,8 @@ function previewGcode(gcodeData, canvas) {
   console.log('Parsed ' + waypoints.length + ' waypoints');
 
   showEtchASketch(canvas, true);
-  etch(waypoints, canvas, ETCH_A_SKETCH_BBOX, 1);
+  etch(waypoints, canvas, ETCH_A_SKETCH_BBOX, 1, offsetLeft, offsetBottom,
+    zoomLevel);
 }
 
 
@@ -536,9 +603,9 @@ function controlHomeClicked() {
 }
 
 function showGcode() {
-  previewGcode(curGcodeData, $("#etchCanvas").get(0));
+  previewGcode(curGcodeData, $("#etchCanvas").get(0),
+    offset_left, offset_bottom, zoom);
 }
-
 
 var uploadedGcode = null;
 var uploadedGcodeUrl = null;
@@ -579,7 +646,7 @@ function uploadGcodePreview(data) {
   var gcode = enc.decode(data);
 
   // Parse and preview Gcode.
-  previewGcode(gcode, $("#previewCanvas").get(0));
+  previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0);
   $('#uploadGcodeConfirm').prop('disabled', false);
 }
 
@@ -634,15 +701,15 @@ function showEtchASketch(canvas, frame) {
 
 // Render the given points into a set of waypoints contained within 
 // the given bounding box.
-function render(points, bbox) {
+function render(points, bbox, offsetLeft, offsetBottom, zoomLevel) {
   ret = []
   var scaled = scaleToBbox(points, bbox);
   scaled.forEach(function(elem) {
     var x = elem.x;
     var y = elem.y;
 
-    var tx = zoom * (x + bbox.x + offset_left);
-    var ty = zoom * (y + bbox.y + offset_bottom);
+    var tx = zoomLevel * (x + bbox.x + offsetLeft);
+    var ty = zoomLevel * (y + bbox.y + offsetBottom);
 
     if (tx < bbox.x) {
       tx = bbox.x;
@@ -663,7 +730,8 @@ function render(points, bbox) {
 }
 
 // Draw the given points on the canvas with a given linewidth.
-function etch(points, canvas, bbox, lineWidth) {
+function etch(points, canvas, bbox, lineWidth, offsetLeft, offsetBottom,
+  zoomLevel) {
   console.log('Etching ' + points.length +
       ' points onto bbox ' + JSON.stringify(bbox));
 
@@ -674,7 +742,7 @@ function etch(points, canvas, bbox, lineWidth) {
   //ctx.lineWidth = 5;
   //ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
   
-  var rendered = render(points, bbox);
+  var rendered = render(points, bbox, offsetLeft, offsetBottom, zoomLevel);
 
   ctx.beginPath();
   ctx.strokeStyle = 'black';

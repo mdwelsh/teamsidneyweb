@@ -73,102 +73,116 @@
 
   <header class="mdl-layout__header" id="tabheader">
     <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
-      <a id="etch-tab-button" href="#scroll-tab-etch" class="mdl-layout__tab is-active">Etch</a>
+      <a id="etch-tab-button" href="#scroll-tab-etch" class="mdl-layout__tab">Etch</a>
       <a id="files-tab-button" href="#scroll-tab-files" class="mdl-layout__tab">Files</a>
       <a id="devices-tab-button" href="#scroll-tab-devices" class="mdl-layout__tab">Devices</a>
       <a id="firmware-tab-button" href="#scroll-tab-firmware" class="mdl-layout__tab">Firmware</a>
+      <a id="about-tab-button" href="#scroll-tab-about" class="mdl-layout__tab">About</a>
     </div>
   </header>
 
-  <main class="mdl-layout__content">
+    <main class="mdl-layout__content">
 
-    <section class="mdl-layout__tab-panel is-active" id="scroll-tab-etch">
-      <div class="tab-contents">
-        <div class="mdl-grid">
+      <section class="mdl-layout__tab-panel" id="scroll-tab-etch">
+        <div class="tab-contents">
+          <div class="mdl-grid">
 
-          <div class="mdl-cell mdl-cell--6-col">
-            <canvas id="etchCanvas" class="responsive" width=1326 height=1081></canvas>
+            <div class="mdl-cell mdl-cell--6-col">
+              <canvas id="etchCanvas" class="responsive" width=1326 height=1081></canvas>
+            </div>
+
+            <div class="mdl-cell mdl-cell--4-col">
+              <div id="fileSelector" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <div>
+                  <label for="fileSelect" class="mdl-textfield__label">Gcode file</label>
+                </div>
+                <div>
+                  <select class="mdl-textfield__input" id="fileSelect"></select>
+                </div>
+              </div>
+              <div id="deviceSelector" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                <div>
+                  <label for="deviceSelect" class="mdl-textfield__label">Device</label>
+                </div>
+                <div>
+                  <select class="mdl-textfield__input" id="deviceSelect"></select>
+                </div>
+              </div>
+              <div role="group">
+                <button id="etchButton" type="button" class="mdl-button mdl-button--raised mdl-button--accent" disabled>Etch!</button>
+                <button id="stopButton" type="button" class="mdl-button mdl-button--raised mdl-button--colored" disabled>Stop</button>
+              </div>
+  
+              <div role="group" id="controlButtons">
+                <button id="controlLeft" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i class="material-icons">arrow_back</i></button>
+                <button id="controlRight" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i class="material-icons">arrow_forward</i></button>
+                <button id="controlUp" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i class="material-icons">arrow_upwards</i></button>
+                <button id="controlDown" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i class="material-icons">arrow_downwards</i></button>
+                <button id="controlZoomIn" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i class="material-icons">zoom_in</i></button>
+                <button id="controlZoomOut" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i class="material-icons">zoom_out</i></button>
+                <button id="controlHome" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i class="material-icons">home</i></button>
+              </div>
+
+              <div id="userDebug"></div>
+            </div>
+  
+          </div>  <!-- Grid -->
+
+          <!-- Upload Gcode fab -->
+          <button id="fileUploadButton" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+            <i class="material-icons">add_photo_alternate</i>
+          </button>
+
+          <div id="dberror" class="errormsg"></div>
+          <div id="striplist" class="listgroup"></div>
+        </div>
+      </section>
+
+      <section class="mdl-layout__tab-panel" id="scroll-tab-files">
+        <div class="tab-contents">
+          Files
+          <div id="fileList" class="listgroup"></div>
+          <button id="fileUploadButton" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+            <i class="material-icons">add</i>
+          </button>
+        </div>
+      </section>
+
+      <section class="mdl-layout__tab-panel" id="scroll-tab-devices">
+        <div class="tab-contents">
+          Devices
+          <div id="deviceList" class="listgroup"></div>
+          <button id="fileUploadButton" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+            <i class="material-icons">add</i>
+          </button>
+        </div>
+      </section>
+
+      <section class="mdl-layout__tab-panel" id="scroll-tab-firmware">
+        <div class="tab-contents">
+          Firmware
+          <div id="firmwarelist" class="listgroup"></div>
+          <button id="fileUploadButton" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
+            <i class="material-icons">add</i>
+          </button>
+        </div>
+      </section>
+
+      <section class="mdl-layout__tab-panel" id="scroll-tab-about">
+        <div id="aboutDescription" class="tab-contents">
+          <div class="mdl-grid">
+            <div class="mdl-cell mdl-cell--4-col">
+              <canvas id="aboutCanvas" class="responsive" width=1326 height=1081></canvas>
+            </div>
+            <div class="mdl-cell mdl-cell--4-col">
+              Escher is a web-controlled, robotic Etch-a-Sketch by <a href="https://teamsidney.com/">Team Sidney Enterprises</a>.
+            </div>
           </div>
+        </div>
+      </section>
 
-          <div class="mdl-cell mdl-cell--4-col">
-            <div id="fileSelector" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-              <div>
-                <label for="fileSelect" class="mdl-textfield__label">Gcode file</label>
-              </div>
-              <div>
-                <select class="mdl-textfield__input" id="fileSelect"></select>
-              </div>
-            </div>
-            <div id="deviceSelector" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-              <div>
-                <label for="deviceSelect" class="mdl-textfield__label">Device</label>
-              </div>
-              <div>
-                <select class="mdl-textfield__input" id="deviceSelect"></select>
-              </div>
-            </div>
-            <div role="group">
-              <button id="etchButton" type="button" class="mdl-button mdl-button--raised mdl-button--accent" disabled>Etch!</button>
-              <button id="stopButton" type="button" class="mdl-button mdl-button--raised mdl-button--colored" disabled>Stop</button>
-            </div>
-
-            <div role="group" id="controlButtons">
-              <button id="controlLeft" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i class="material-icons">arrow_back</i></button>
-              <button id="controlRight" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i class="material-icons">arrow_forward</i></button>
-              <button id="controlUp" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i class="material-icons">arrow_upwards</i></button>
-              <button id="controlDown" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i class="material-icons">arrow_downwards</i></button>
-              <button id="controlZoomIn" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i class="material-icons">zoom_in</i></button>
-              <button id="controlZoomOut" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i class="material-icons">zoom_out</i></button>
-              <button id="controlHome" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i class="material-icons">home</i></button>
-            </div>
-
-            <div id="userDebug"></div>
-          </div>
-
-        </div>  <!-- Grid -->
-
-        <!-- Upload Gcode fab -->
-        <button id="fileUploadButton" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
-          <i class="material-icons">add_photo_alternate</i>
-        </button>
-
-        <div id="dberror" class="errormsg"></div>
-        <div id="striplist" class="listgroup"></div>
-      </div>
-    </section>
-
-    <section class="mdl-layout__tab-panel" id="scroll-tab-files">
-      <div class="tab-contents">
-        Files
-        <div id="fileList" class="listgroup"></div>
-        <button id="fileUploadButton" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
-          <i class="material-icons">add</i>
-        </button>
-      </div>
-    </section>
-
-    <section class="mdl-layout__tab-panel" id="scroll-tab-devices">
-      <div class="tab-contents">
-        Devices
-        <div id="deviceList" class="listgroup"></div>
-        <button id="fileUploadButton" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
-          <i class="material-icons">add</i>
-        </button>
-      </div>
-    </section>
-
-    <section class="mdl-layout__tab-panel" id="scroll-tab-firmware">
-      <div class="tab-contents">
-        Firmware
-        <div id="firmwarelist" class="listgroup"></div>
-        <button id="fileUploadButton" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
-          <i class="material-icons">add</i>
-        </button>
-      </div>
-    </section>
-
-  </main>
-</div>
+    </main>
+  </div>
 
 <!-- Upload Gcode dialog modal -->
 <dialog id="uploadGcode" class="mdl-dialog">

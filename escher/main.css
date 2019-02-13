@@ -4,7 +4,7 @@
 body {
   background-color: #f4f4f4;
   font-family: Roboto;
-  font-size: 12px;
+  font-size: 18px;
 }
 
 #header {
@@ -122,7 +122,7 @@ body {
 }
 
 #uploadGcodeTitle {
-  font-size: 16px;
+  font-size: 20px;
 }
 
 #uploadGcodeSelectedFile {
@@ -137,33 +137,22 @@ body {
 }
 
 
-/* Older stuff below ***************************************/
-
-#log {
-  margin-top: 20px;
+/* Etch control dialog */
+#etchControl {
+  width: 80%;
 }
 
-.log-line {
-  font-family: Roboto;
-  font-size: 12px;
-  color: #808080;
+#etchControlTitle {
+  font-size: 20px;
 }
 
-.log-line-entry {
-  padding-left: 10px;
-  vertical-align: middle;
+
+#aboutDescription {
+  font-size: 18px;
 }
 
-.log-line-date {
-}
 
-.log-line-name {
-  padding-left: 10px;
-}
-
-.log-line-text {
-  padding-left: 10px;
-}
+/* Older stuff below ***********************/
 
 #striplist {
   padding-top: 10px;
