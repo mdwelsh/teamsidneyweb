@@ -15,7 +15,7 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 // Image with Etch-a-Sketch background.
 var backgroundImage;
 
-// Bounding box for screen of Etch-a-Sketch (experimentally determined).
+// Bounding box for screen of virtual Etch-a-Sketch.
 const ETCH_A_SKETCH_BBOX = {
   x: 210,
   y: 210,
@@ -437,9 +437,10 @@ function etchButtonClicked() {
   var bbox = {
     x: 0,
     y: 0,
+    // Boundaries of physical Etch-a-Sketch screen with small knobs.
     // TODO(mdw) - Provide interface to configure this.
-    width: 900,
-    height: 620,
+    width: 720,
+    height: 500,
   };
   var waypoints = parseGcode(curGcodeData);
   if (waypoints == null) {
