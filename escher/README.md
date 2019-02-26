@@ -1,9 +1,17 @@
 ## TODO:
 
-* Add text box to change file name before uploading
-* Write Arduino-side code for etching control
+* Add UI to tweak size and backlash parameters
+
+* Make stop button change to resume
+
 * Add ping method to Arduino code so web page can check status and
   liveness of device.
+
+* Cause etch/stop buttons to be disabled/enabled during etching or
+  when done etching
+
+* Fix bug with pausing showing error when device is not etching
+
 
 ## Design for device registration
 

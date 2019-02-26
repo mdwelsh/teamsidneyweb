@@ -546,7 +546,9 @@ function stopButtonClicked() {
     showMessage('Etching stopped!');
   })
   .fail(err => {
-    showError('Error pausing: ' + err);
+    console.log('Got error pausing:');
+    console.log(err);
+    showError('Error pausing: ' + err.responseText);
   });
 }
 
