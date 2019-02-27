@@ -241,6 +241,10 @@ function setup() {
   $('#stopButton').click(function(e) {
     stopButtonClicked();
   });
+  $('#pauseButton').off('click');
+  $('#pauseButton').click(function(e) {
+    pauseButtonClicked();
+  });
 
   // Load Etch-A-Sketch background image.
   backgroundImage = new Image();
@@ -403,24 +407,71 @@ function selectDevice(value) {
   updateEtchButton();
 }
 
-// Update Etch button state.
+function pingDevice(ip) {
+  var url = 'http://' + ip + '/ping';
+  return $.get(url);
+}
+
+// Update Etch, Pause, and Stop button states.
 function updateEtchButton() {
   var ebtn = $('#etchButton');
+  var pbtn = $('#pauseButton');
   var sbtn = $('#stopButton');
+
+  // By default no buttons are enabled.
+  var etchButtonDisabled = true;
+  var pauseButtonDisabled = true;
+  var stopButtonDisabled = true;
 
   // Only allow etching to be started if both Gcode and device are selected.
   if (curGcodeData != null && curDevice != null) {
-    ebtn.prop('disabled', false);
-  } else {
-    ebtn.prop('disabled', true);
+    etchButtonDisabled = false;
+    pauseButtonDisabled = true;
+    stopButtonDisabled = true;
   }
 
-  // Always allow stop to be issued even when not etching.
-  if (curDevice != null) {
-    sbtn.prop('disabled', false);
-  } else {
-    sbtn.prop('disabled', true);
+  // If no device is selected, just set the state now.
+  if (curDevice == null) {
+    console.log('Setting state etch ' + etchButtonDisabled + ' stop ' + stopButtonDisabled);
+    ebtn.prop('disabled', etchButtonDisabled);
+    pbtn.prop('disabled', pauseButtonDisabled);
+    sbtn.prop('disabled', stopButtonDisabled);
+    return;
   }
+
+  var xhr = pingDevice(curDevice.ip);
+  console.log('Ping xhr:');
+  console.log(xhr);
+
+  xhr
+    .done(function(data) {
+      console.log('Got back ping data:');
+      console.log(data);
+      // Can't start etching when already doing it.
+      if (data.state == "etching" || data.state == "paused") {
+        console.log('Hey its etching');
+        etchButtonDisabled = true;
+        pauseButtonDisabled = false;
+        stopButtonDisabled = false;
+      }
+      if (data.state == "paused") {
+        pbtn.html('Resume');
+      } else {
+        pbtn.html('Pause');
+      }
+    })
+    .fail(function(data) {
+      console.log('Ping failed:');
+      console.log(data);
+    })
+    .always(function() {
+      console.log('Finally running');
+      console.log('etch: ' + etchButtonDisabled);
+      console.log('stop: ' + stopButtonDisabled);
+      ebtn.prop('disabled', etchButtonDisabled);
+      pbtn.prop('disabled', pauseButtonDisabled);
+      sbtn.prop('disabled', stopButtonDisabled);
+    });
 }
 
 // Called when Etch button is clicked.
@@ -509,11 +560,11 @@ function uploadCommandFile(points, device) {
   })
   .done(function() {
     console.log('Ajax done!');
-    showMessage('Uploaded command file to device at ' + device.ip);
+    showMessage('Uploaded image to device at ' + device.ip);
   })
   .fail(function() {
     console.log('Ajax fail!');
-    showError('Unable to upload command file');
+    showError('Unable to upload image to device');
     $("#etchControl").get()[0].close();
   });
 }
@@ -532,6 +583,39 @@ function etchControlStartClicked() {
   .fail(err => {
     $("#etchControl").get()[0].close();
     showError('Error starting etch: ' + err);
+  })
+  .always(function() {
+    updateEtchButton();
+  });
+}
+
+// Called when pause button is clicked.
+function pauseButtonClicked() {
+  if (curDevice == null) {
+    showError('No device selected');
+    return;
+  }
+
+  var state = $("#pauseButton").html();
+  var url;
+  var action;
+  if (state == "Pause") {
+    url = 'http://' + curDevice.ip + '/pause';
+    action = 'Etching paused!';
+  } else {
+    url = 'http://' + curDevice.ip + '/resume';
+    action = 'Etching resumed!';
+  }
+  $.get(url, data => {
+    showMessage(action);
+  })
+  .fail(err => {
+    console.log('Got error on pause/resume:');
+    console.log(err);
+    showError('Error: ' + err.responseText);
+  })
+  .always(function() {
+    updateEtchButton();
   });
 }
 
@@ -541,14 +625,17 @@ function stopButtonClicked() {
     showError('No device selected');
     return;
   }
-  var url = 'http://' + curDevice.ip + '/pause';
+  var url = 'http://' + curDevice.ip + '/stop';
   $.get(url, data => {
     showMessage('Etching stopped!');
   })
   .fail(err => {
-    console.log('Got error pausing:');
+    console.log('Got error stopping:');
     console.log(err);
-    showError('Error pausing: ' + err.responseText);
+    showError('Error stopping: ' + err.responseText);
+  })
+  .always(function() {
+    updateEtchButton();
   });
 }
 

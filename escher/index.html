@@ -110,6 +110,7 @@
               </div>
               <div role="group">
                 <button id="etchButton" type="button" class="mdl-button mdl-button--raised mdl-button--accent" disabled>Etch!</button>
+                <button id="pauseButton" type="button" class="mdl-button mdl-button--raised mdl-button--accent" disabled>Pause</button>
                 <button id="stopButton" type="button" class="mdl-button mdl-button--raised mdl-button--colored" disabled>Stop</button>
               </div>
   
@@ -217,12 +218,12 @@
 <dialog id="etchControl" class="mdl-dialog">
 <div class="etchControlHeader">
   <div class="mdl-dialog__title" id="etchControlTitle">
-    Ready to Etch?
+    Start Etching
   </div>
 </div>
 <!-- Etch control body -->
 <div class="mdl-dialog__content" id="etchControlBody">
-  <div class="etchControlMessage" id="etchUploadingMessage">Uploading control data...</div>
+  <div class="etchControlMessage" id="etchUploadingMessage">Uploading image...</div>
   <div id="etchControlSpinner" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
   <div class="etchControlMessage" id="etchReadyMessage">Ready to Etch</div>
 </div>
