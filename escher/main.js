@@ -147,6 +147,9 @@ function setup() {
 
   toggleLoginState();
 
+  // Lists.
+  $("#fileList").empty();
+
   // File upload dialog.
   $('#fileUploadButton').off('click');
   $('#fileUploadButton').click(function (e) {
@@ -300,15 +303,102 @@ var gcodeFiles = new Map();
 function addGcodeEntry(gcodeDoc) {
   gcodeFiles.set(gcodeDoc.filename, gcodeDoc);
   updateGcodeSelector();
+  updateGcodeList();
 }
 
 // Called when a Gcode file has been deleted.
 function removeGcodeEntry(gcodeDoc) {
   gcodeFiles.delete(gcodeDoc.filename);
   updateGcodeSelector();
+  updateGcodeList();
 }
 
-// Update list of Gcode files in the selector UI.
+// Update list of Gcode files in the files tab.
+function updateGcodeList() {
+  var container = $("#fileList");
+  container.empty();
+  var index = 0;
+  for (var gcode of gcodeFiles.values()) {
+    addGcodeCard(gcode, index);
+    index++;
+  }
+}
+
+function addGcodeCard(gcode, index) {
+  // Create UI card.
+  var container = $('#fileList');
+  var cardline = $('<div/>')
+    .addClass('gcode-line')
+    .appendTo(container);
+  gcode.cardElem = cardline;
+
+  var card = $('<div/>')
+    .addClass('gcode-card')
+    .addClass('mdl-card')
+    .addClass('mdl-shadow--2dp')
+    .attr('id', 'gcode-'+index)
+    .appendTo(cardline);
+  var cardtitle = $('<div/>')
+    .attr('id', 'gcode-title')
+    .addClass('mdl-card__title')
+    .appendTo(card);
+  var cardbody = $('<div/>')
+    .addClass('mdl-card__supporting-text')
+    .appendTo(card);
+
+  var tl = $('<div/>')
+    .addClass('gcode-title-line')
+    .appendTo(cardtitle);
+  var sid = $('<div/>')
+    .addClass('gcode-filename')
+    .text(gcode.filename)
+    .appendTo(tl);
+
+  // Status area.
+  var statusArea = $('<div/>')
+    .addClass('container')
+    .addClass('gcode-status')
+    .appendTo(cardbody);
+
+  $('<div/>')
+    .text('Date uploaded')
+    .appendTo(statusArea);
+  $('<div/>')
+    .attr('id', 'date')
+    .text('unknown')
+    .appendTo(statusArea);
+
+  $('<div/>')
+    .text('File')
+    .appendTo(statusArea);
+  $('<div/>')
+    .attr('id', 'url')
+    .text('unknown')
+    .appendTo(statusArea);
+
+  // Button group.
+  var bg = $('<div/>')
+    .addClass('gcode-card-buttons')
+    .appendTo(card);
+
+  $('<button/>')
+    .attr('type', 'button')
+    .attr('id', 'gcodeDeleteButton')
+    .addClass('mdl-button')
+    .addClass('mdl-js-button')
+    .addClass('mdl-button--icon')
+    .append($('<i/>').addClass('material-icons').text('delete'))
+    .click(function() {
+      deleteGcodeStart(gcode.filename);
+      $("#deleteGcode").get()[0].showModal();
+    })
+    .appendTo(bg);
+
+  // Needed for MD Lite to kick in.
+  componentHandler.upgradeElements(card.get());
+}
+
+// Update list of Gcode files in the file UI.
 function updateGcodeSelector() {
   var select = $("#fileSelect");
   select.empty();
