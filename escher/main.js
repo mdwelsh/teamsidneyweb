@@ -325,6 +325,9 @@ function updateGcodeList() {
 }
 
 function addGcodeCard(gcode, index) {
+  console.log('addGcodeCard:');
+  console.log(gcode);
+
   // Create UI card.
   var container = $('#fileList');
   var cardline = $('<div/>')
@@ -360,21 +363,28 @@ function addGcodeCard(gcode, index) {
     .addClass('gcode-status')
     .appendTo(cardbody);
 
+  // Date.
+  var m = new moment(gcode.dateUploaded.seconds * 1000);
+  var dateString = m.format('MMM DD, h:mm:ss a') + ' (' + m.fromNow() + ')';
+
   $('<div/>')
     .text('Date uploaded')
     .appendTo(statusArea);
   $('<div/>')
     .attr('id', 'date')
-    .text('unknown')
+    .text(dateString)
     .appendTo(statusArea);
 
   $('<div/>')
     .text('File')
     .appendTo(statusArea);
-  $('<div/>')
+  var url = $('<div/>')
     .attr('id', 'url')
-    .text('unknown')
     .appendTo(statusArea);
+  $('<a/>')
+    .attr('href', gcode.url)
+    .text(gcode.url)
+    .appendTo(url);
 
   // Button group.
   var bg = $('<div/>')

@@ -152,59 +152,45 @@ body {
 }
 
 
-/* Older stuff below ***********************/
+/* Gcode file list UI */
 
-#striplist {
+#fileList {
   padding-top: 10px;
 }
 
-
-.strip-line {
+.gcode-line {
   margin-top: 10px;
   justify-content: space-between;
 }
 
-.strip-card {
+.gcode-card {
   width: 100%;
 }
 
-.strip-title-line {
+.gcode-title-line {
   display: grid;
   grid-template-columns: 100px 1fr 100px;
   width: 100%;
 }
 
-.strip-id {
-}
-
-.strip-title-space {
-}
-
-.strip-title-switch {
-}
-
-.strip-status {
+.gcode-status {
   display: grid;
   grid-template-columns: 30% 70%;
   grid-row-gap: 5px;
 }
 
-.strip-card-buttons {
+.gcode-card-buttons {
   margin: 20px;
   display: grid;
-  grid-template-columns: [edit] 80px 1fr [refresh] 50px [delete] 50px;
+  grid-template-columns: [delete] 80px;
   width: 90%;
 }
 
-.strip-card-buttons > button {
-  justify-self: center;
+.gcode-card-buttons > button {
+  justify-self: left;
 }
 
-#refreshButton {
-  grid-column-start: refresh;
-}
-
-#deleteButton {
+#gcodeDeleteButton {
   grid-column-start: delete
 }
 
