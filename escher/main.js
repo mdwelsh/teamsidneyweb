@@ -303,7 +303,7 @@ var gcodeFiles = new Map();
 function addGcodeEntry(gcodeDoc) {
   gcodeFiles.set(gcodeDoc.filename, gcodeDoc);
   updateGcodeSelector();
-  updateGcodeList();
+  addGcodeCard(gcodeDoc, gcodeFiles.size);
 }
 
 // Called when a Gcode file has been deleted.
@@ -313,8 +313,9 @@ function removeGcodeEntry(gcodeDoc) {
   updateGcodeList();
 }
 
-// Update list of Gcode files in the files tab.
+// Refresh the entire Gcode list. Expensive.
 function updateGcodeList() {
+  console.log('updateGcodeList called');
   var container = $("#fileList");
   container.empty();
   var index = 0;
@@ -325,8 +326,7 @@ function updateGcodeList() {
 }
 
 function addGcodeCard(gcode, index) {
-  console.log('addGcodeCard:');
-  console.log(gcode);
+  console.log('addGcodeCard:' + gcode.filename);
 
   // Create UI card.
   var container = $('#fileList');
@@ -346,6 +346,7 @@ function addGcodeCard(gcode, index) {
     .addClass('mdl-card__title')
     .appendTo(card);
   var cardbody = $('<div/>')
+    .addClass('gcode-body')
     .addClass('mdl-card__supporting-text')
     .appendTo(card);
 
@@ -385,6 +386,22 @@ function addGcodeCard(gcode, index) {
     .attr('href', gcode.url)
     .text(gcode.url)
     .appendTo(url);
+
+  // Preview.
+  var previewArea = $('<div/>')
+    .addClass('container')
+    .addClass('gcode-preview')
+    .appendTo(cardbody);
+  var previewCanvas = $('<canvas/>')
+    .attr('width', 1326)
+    .attr('height', 1081)
+    .addClass('responsive')
+    .appendTo(previewArea);
+
+  // Do the preview.
+  $.get(gcode.url, data => {
+    previewGcode(data, previewCanvas.get(0), 0, 0, 1.0, true);
+  });
 
   // Button group.
   var bg = $('<div/>')
@@ -463,7 +480,7 @@ function updateDeviceSelector() {
 // Show the static Escher logo on the about canvas.
 function showAboutPreview() {
   $.get('/escher-logo.gcode', data => {
-    previewGcode(data, $("#aboutCanvas").get(0), 80, 230, 0.9);
+    previewGcode(data, $("#aboutCanvas").get(0), 80, 230, 0.9, true);
   });
 }
 
@@ -740,7 +757,8 @@ function stopButtonClicked() {
 }
 
 // Show the given GCode on the canvas.
-function previewGcode(gcodeData, canvas, offsetLeft, offsetBottom, zoomLevel) {
+function previewGcode(gcodeData, canvas, offsetLeft, offsetBottom, zoomLevel,
+  showFrame) {
   var waypoints = parseGcode(gcodeData);
   if (waypoints.length == 0) {
     console.log('Error: Cannot parse Gcode');
@@ -749,7 +767,9 @@ function previewGcode(gcodeData, canvas, offsetLeft, offsetBottom, zoomLevel) {
   }
   console.log('Parsed ' + waypoints.length + ' waypoints');
 
-  showEtchASketch(canvas, true);
+  if (showFrame) {
+    showEtchASketch(canvas, true);
+  }
   etch(waypoints, canvas, ETCH_A_SKETCH_BBOX, 1, offsetLeft, offsetBottom,
     zoomLevel);
 }
@@ -794,7 +814,7 @@ function controlHomeClicked() {
 
 function showGcode() {
   previewGcode(curGcodeData, $("#etchCanvas").get(0),
-    offset_left, offset_bottom, zoom);
+    offset_left, offset_bottom, zoom, true);
 }
 
 var uploadedGcode = null;
@@ -836,7 +856,7 @@ function uploadGcodePreview(data) {
   var gcode = enc.decode(data);
 
   // Parse and preview Gcode.
-  previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0);
+  previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true);
   $('#uploadGcodeConfirm').prop('disabled', false);
 }
 

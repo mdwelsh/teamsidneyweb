@@ -173,10 +173,21 @@ body {
   width: 100%;
 }
 
+.gcode-body {
+  display: grid;
+  grid-template-columns: [status] 1fr 1fr [preview] 1fr;
+  width: 95%;
+}
+
 .gcode-status {
+  grid-column-start: status;
   display: grid;
   grid-template-columns: 30% 70%;
   grid-row-gap: 5px;
+}
+
+.gcode-preview {
+  grid-column-start: preview;
 }
 
 .gcode-card-buttons {
