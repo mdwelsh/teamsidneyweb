@@ -655,6 +655,8 @@ function uploadCommandFile(points, device) {
   });
   controlMsg += 'END\n';
 
+  console.log('Uploading ' + controlMsg.length + ' bytes to device');
+
   // Fake a file upload via FormData:
   // https://developer.mozilla.org/en-US/docs/Web/API/FormData/Using_FormData_Objects
   // This is necessary because we have great built-in support for large file uploads
@@ -912,7 +914,8 @@ function showEtchASketch(canvas, frame) {
 // Render the given points into a set of waypoints contained within 
 // the given bounding box.
 function render(points, bbox, offsetLeft, offsetBottom, zoomLevel) {
-  ret = []
+  var ret = []
+  var last = {x: null, y: null};
   var scaled = scaleToBbox(points, bbox);
   scaled.forEach(function(elem) {
     var x = elem.x;
@@ -933,8 +936,11 @@ function render(points, bbox, offsetLeft, offsetBottom, zoomLevel) {
     if (ty > bbox.y + bbox.height) {
       ty = bbox.y + bbox.height;
     }
-
-    ret.push({x: tx, y: ty});
+    var pt = {x: tx, y: ty};
+    if (pt.x != last.x || pt.y != last.y) {
+      ret.push({x: tx, y: ty});
+      last = pt;
+    }
   });
   return ret;
 }

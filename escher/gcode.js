@@ -72,9 +72,9 @@ function doArc(posx, posy, x, y, cx, cy, cw) {
 }
 
 function parseGcode(data) {
-
   var waypoints = [];
   var lines = data.split(/\r?\n/);
+  var lastpoint = {x: null, y: null};
 
   lines.forEach(function(line) {
     var re = /^(G0[01]) X([\d\.]+) Y([\d\.]+)/;
@@ -82,7 +82,11 @@ function parseGcode(data) {
     if (m != null) {
       var x = parseFloat(m[2]);
       var y = parseFloat(m[3]);
-      waypoints.push({x: x, y: y});
+      var pt = {x: x, y: y};
+      if (pt.x != lastpoint.x || pt.y != lastpoint.y) {
+        waypoints.push(pt);
+        lastpoint = pt;
+      }
     }
 
     var re2 = /^(G0[23]) X([-\d\.]+) Y([-\d\.]+) (Z[-\d\.]+)? I([-\d\.]+) J([-\d\.]+)/;
@@ -108,7 +112,10 @@ function parseGcode(data) {
 
       curve = doArc(last.x, last.y, x, y, last.x+i, last.y+j, cw);
       curve.forEach(function(pt) {
-        waypoints.push(pt);
+        if (pt.x != lastpoint.x || pt.y != lastpoint.y) {
+          waypoints.push(pt);
+          lastpoint = pt;
+        }
       });
     }
   });
