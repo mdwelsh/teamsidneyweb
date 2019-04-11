@@ -16,11 +16,22 @@ firebase.auth().onAuthStateChanged(firebaseUser => {
 var backgroundImage;
 
 // Bounding box for screen of virtual Etch-a-Sketch.
-const ETCH_A_SKETCH_BBOX = {
+const VIRTUAL_ETCH_A_SKETCH_BBOX = {
   x: 210,
   y: 210,
   width: 900,
   height: 620,
+};
+
+// Bounding box for physical Etch-a-Sketch.
+// TODO(mdw): Provide an interface to configure this.
+const PHYSICAL_ETCH_A_SKETCH_BBOX = {
+  x: 0,
+  y: 0,
+//  width: 720,
+//  height: 500,
+  width: 720,
+  height: 400,
 };
 
 window.onload = function() {
@@ -602,14 +613,7 @@ function etchButtonClicked() {
   $("#etchControl").get(0).showModal();
 
   // Render the Gcode to commands for the Etch-a-Sketch.
-  var bbox = {
-    x: 0,
-    y: 0,
-    // Boundaries of physical Etch-a-Sketch screen with small knobs.
-    // TODO(mdw) - Provide interface to configure this.
-    width: 720,
-    height: 500,
-  };
+  var bbox = PHYSICAL_ETCH_A_SKETCH_BBOX;
   var waypoints = parseGcode(curGcodeData);
   if (waypoints == null) {
     showError('Unable to parse Gcode!');
@@ -772,8 +776,8 @@ function previewGcode(gcodeData, canvas, offsetLeft, offsetBottom, zoomLevel,
   if (showFrame) {
     showEtchASketch(canvas, true);
   }
-  etch(waypoints, canvas, ETCH_A_SKETCH_BBOX, 1, offsetLeft, offsetBottom,
-    zoomLevel);
+  etch(waypoints, canvas, VIRTUAL_ETCH_A_SKETCH_BBOX, 1, offsetLeft,
+    offsetBottom, zoomLevel);
 }
 
 
