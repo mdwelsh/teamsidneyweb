@@ -14,8 +14,9 @@ electronics, hacking, and laser cutters.
 
 ![Picture of matt](mdw.jpg){:height="250px"}
 
-[Matt](https://www.mdw.la/) works at Google in Seattle, WA, 
-and enjoys riding bikes, drinking beer, and programming computers.
+[Matt](https://www.mdw.la/) works at [Xnor.ai](https://xnor.ai/) in Seattle, WA,
+an early-stage AI startup developing machine learning software for embedded systems.
+He enjoys riding bikes, drinking beer, and programming computers.
 
 ## Contact
 
