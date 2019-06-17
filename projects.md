@@ -5,7 +5,7 @@ Check out some of Team Sidney Enterprises' projects below.
 
 # T.I.C.A.L.S.
 
-T.I.C.A.L.S. (The Interesting and Completely Awesome Laser System) is a break-beam sensor security alarmsystem for Sidney's room.
+T.I.C.A.L.S. (The Interesting and Completely Awesome Laser System) T.I.C.A.L.S. is a security system for Sidney's door. It uses a laser pointing at a photoresistor to determine whether somebody has entered the room.
 
 
 # Blinky
