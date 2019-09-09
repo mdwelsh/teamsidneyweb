@@ -5,12 +5,22 @@ var db = firebase.firestore();
 
 // Show/hide appropriate section of UI based on login state.
 firebase.auth().onAuthStateChanged(firebaseUser => {
-  if (firebaseUser) {
-    showLoggedInUI();
-  } else {
-    showLoggedOutUI();
-  }
+  showUI();
 });
+
+// Update the UI to reflect the current state.
+function showUI() {
+  if (currentUser() != null) {
+    showAdminUI();
+  } else {
+    showNormalUI();
+  }
+
+  // Update the current device info.
+  if (curDevice != null) {
+    $('#currentDevice').text(curDevice.mac);
+  }
+}
 
 // Image with Etch-a-Sketch background.
 var backgroundImage;
@@ -28,8 +38,6 @@ const VIRTUAL_ETCH_A_SKETCH_BBOX = {
 const PHYSICAL_ETCH_A_SKETCH_BBOX = {
   x: 0,
   y: 0,
-//  width: 720,
-//  height: 500,
   width: 720,
   height: 400,
 };
@@ -55,8 +63,8 @@ function currentUser() {
   return firebase.auth().currentUser;
 }
 
-// Perform login action.
-function doLogin() {
+// Perform admin login action.
+function doAdminLogin() {
   firebase.auth().signInWithPopup(provider).then(function(result) {
   }).catch(function(error) {
     showError('Sorry, could not log you in: ' + error.message);
@@ -66,77 +74,88 @@ function doLogin() {
 // Log out.
 function logout() {
   firebase.auth().signOut().then(function() {
-    setup(); // Get back to initial state.
+    showUI();
   }, function(error) {
     showError('Problem logging out: ' + error.message);
   });
 }
 
-// Toggle login buttons.
-function toggleLoginState() {
-//  if (currentUser() == null) {
-//    // Not logged in yet.
-//    $('#login').show();
-//    $('#logout').hide();
-//  } else {
-//    // Already logged in.
-//    $('#login').hide();
-//    $('#logout').show();
-//  }
-}
-
-function showLoggedInUI() {
-  $('#login').hide();
+// Show UI when admin is logged in.
+function showAdminUI() {
+  $('#adminLogin').hide();
   $('#logout').show();
 
-  // Enable tab links.
-  $('#etch-tab-button').attr('href', '#scroll-tab-etch');
-  $('#files-tab-button').attr('href', '#scroll-tab-files');
-  $('#devices-tab-button').attr('href', '#scroll-tab-devices');
-  $('#firmware-tab-button').attr('href', '#scroll-tab-firmware');
+  // Show all tabs.
+  $('#login-tab-button').removeClass('hidden');
+  $('#etch-tab-button').removeClass('hidden');
+  $('#files-tab-button').removeClass('hidden');
+  $('#login-tab-button').removeClass('hidden');
 
   // Make the etch tab active.
+  $('#login-tab-button').removeClass('is-active');
   $('#etch-tab-button').addClass('is-active');
   $('#files-tab-button').removeClass('is-active');
-  $('#devices-tab-button').removeClass('is-active');
-  $('#firmware-tab-button').removeClass('is-active');
   $('#about-tab-button').removeClass('is-active');
 
+  $('#scroll-tab-login').removeClass('is-active');
   $('#scroll-tab-etch').addClass('is-active');
   $('#scroll-tab-files').removeClass('is-active');
-  $('#scroll-tab-devices').removeClass('is-active');
-  $('#scroll-tab-firmware').removeClass('is-active');
   $('#scroll-tab-about').removeClass('is-active');
 }
 
-function showLoggedOutUI() {
-  $('#login').show();
+// Show normal UI.
+function showNormalUI() {
+  $('#adminLogin').show();
   $('#logout').hide();
 
-  // Disable tab links.
-  $('#etch-tab-button').attr('href', '');
-  $('#files-tab-button').attr('href', '');
-  $('#devices-tab-button').attr('href', '');
-  $('#firmware-tab-button').attr('href', '');
-
-  // Make the about tab active.
-  $('#etch-tab-button').removeClass('is-active');
-  $('#files-tab-button').removeClass('is-active');
-  $('#devices-tab-button').removeClass('is-active');
-  $('#firmware-tab-button').removeClass('is-active');
-  $('#about-tab-button').addClass('is-active');
-
-  $('#scroll-tab-etch').removeClass('is-active');
-  $('#scroll-tab-files').removeClass('is-active');
-  $('#scroll-tab-devices').removeClass('is-active');
-  $('#scroll-tab-firmware').removeClass('is-active');
-  $('#scroll-tab-about').addClass('is-active');
+  // If we don't have a current device selected...
+  if (curDevice == null) {
+    showNoDeviceUI();
+  } else {
+    showDeviceUI();
+  }
 }
 
-// Callback when signin complete.
-firebase.auth().onAuthStateChanged(function(user) {
-  setup();
-});
+// Show normal UI when no device selected.
+function showNoDeviceUI() {
+  // Hide all tabs except for login and about.
+  $('#login-tab-button').removeClass('hidden');
+  $('#etch-tab-button').addClass('hidden');
+  $('#files-tab-button').addClass('hidden');
+  $('#about-tab-button').removeClass('hidden');
+
+  // Make the login tab active.
+  $('#login-tab-button').addClass('is-active');
+  $('#etch-tab-button').removeClass('is-active');
+  $('#files-tab-button').removeClass('is-active');
+  $('#about-tab-button').removeClass('is-active');
+
+  $('#scroll-tab-login').addClass('is-active');
+  $('#scroll-tab-etch').removeClass('is-active');
+  $('#scroll-tab-files').removeClass('is-active');
+  $('#scroll-tab-about').removeClass('is-active');
+}
+
+// Show normal UI when device selected.
+function showDeviceUI() {
+  // Show non-admin tabs.
+  $('#login-tab-button').addClass('hidden');
+  $('#etch-tab-button').removeClass('hidden');
+  $('#files-tab-button').removeClass('hidden');
+  $('#login-tab-button').removeClass('hidden');
+
+  // Make the etch tab active.
+  $('#login-tab-button').removeClass('is-active');
+  $('#etch-tab-button').addClass('is-active');
+  $('#files-tab-button').removeClass('is-active');
+  $('#about-tab-button').removeClass('is-active');
+
+  $('#scroll-tab-login').removeClass('is-active');
+  $('#scroll-tab-etch').addClass('is-active');
+  $('#scroll-tab-files').removeClass('is-active');
+  $('#scroll-tab-about').removeClass('is-active');
+
+}
 
 // Called when there is an error reading the database.
 function dbErrorCallback(err) {
@@ -151,15 +170,22 @@ function dbErrorCallback(err) {
 // Invoked whenever we need to reset the UI to a known state.
 function setup() {
   // Login/logout buttons.
-  $('#login').off('click');
-  $('#login').click(doLogin);
+  $('#adminLogin').off('click');
+  $('#adminLogin').click(doAdminLogin);
   $('#logout').off('click');
   $('#logout').click(logout);
 
-  toggleLoginState();
-
   // Lists.
   $("#fileList").empty();
+  $("#deviceList").empty();
+
+  // Access code entry.
+  $('#accessCode').off('input');
+
+  $('#accessCode').on('input', function() {
+    var code = $('#accessCode').val();
+    accessCodeChanged(code);
+  });
 
   // File upload dialog.
   $('#fileUploadButton').off('click');
@@ -213,7 +239,7 @@ function setup() {
   // Device selector.
   $('#deviceSelect').off('change');
   $('#deviceSelect').change(function(e) {
-    selectDevice(this.value);
+    deviceSelectChanged(this.value);
   });
 
   // Control buttons.
@@ -247,6 +273,10 @@ function setup() {
   });
 
   // Action bttons.
+  $('#loginButton').off('click');
+  $('#loginButton').click(function(e) {
+    loginButtonClicked();
+  });
   $('#etchButton').off('click');
   $('#etchButton').click(function(e) {
     etchButtonClicked();
@@ -265,9 +295,14 @@ function setup() {
   backgroundImage.src = "EtchASketch.jpg";
   $(backgroundImage).load(function () {
     showEtchASketch($("#etchCanvas").get(0), true);
-    showEtchASketch($("#aboutCanvas").get(0), true);
-    showAboutPreview();
+    showEtchASketch($("#loginCanvas").get(0), true);
+    showLoginPreview();
   });
+
+  // XXX XXX XXX MDW STOPPED HERE.
+  // - Need to make discovery of gCode files tied to entering a correct access code
+  //    (or being logged in). For now, we can make them public.
+  // - Need to implement TOTA protocol for device discovery.
 
   // Set up listener for Gcode metadata updates.
   db.collection("escher").doc("root").collection("gcode")
@@ -294,17 +329,39 @@ function setup() {
         }
      });
   });
+}
 
-  // Debugging - get user token.
-  
-  firebase.auth().currentUser.getIdToken(/* forceRefresh */ true)
-    .then(function(idToken) {
-    console.log("Got token:");
-    console.log(idToken);
-  }).catch(function(error) {
-    console.log("Error getting token:");
-    console.log(error);
-  });
+// Login tab and access code entry.
+
+function accessCodeChanged(code) {
+  $("#accessCodeError").hide();
+  // Only allow login on 6-digit entry.
+  if (code.length == 6) {
+    $("#loginButton").prop('disabled', false);
+  } else {
+    $("#loginButton").prop('disabled', true);
+  }
+}
+
+function loginButtonClicked() {
+  var code = $('#accessCode').val();
+  if (code.length != 6) {
+    $("#accessCodeError").text("Code must be 6 characters");
+    $("#accessCodeError").show();
+    return;
+  }
+
+  // TODO(mdw): Implement actual TOTA code check.
+  if (code != "abc123") {
+    $("#accessCodeError").text("Invalid access code!");
+    $("#accessCodeError").show();
+    return;
+  }
+
+  // TODO(mdw): Implement actual device info fetch.
+  selectDevice("30:AE:A4:20:A0:A4");
+  showUI();
+  updateEtchState();
 }
 
 // The list of Gcode files that we know about.
@@ -312,6 +369,7 @@ var gcodeFiles = new Map();
 
 // Called when we learn about a new Gcode file.
 function addGcodeEntry(gcodeDoc) {
+  console.log("MDW: addGcodeEntry called");
   gcodeFiles.set(gcodeDoc.filename, gcodeDoc);
   updateGcodeSelector();
   addGcodeCard(gcodeDoc, gcodeFiles.size);
@@ -326,7 +384,6 @@ function removeGcodeEntry(gcodeDoc) {
 
 // Refresh the entire Gcode list. Expensive.
 function updateGcodeList() {
-  console.log('updateGcodeList called');
   var container = $("#fileList");
   container.empty();
   var index = 0;
@@ -337,8 +394,6 @@ function updateGcodeList() {
 }
 
 function addGcodeCard(gcode, index) {
-  console.log('addGcodeCard:' + gcode.filename);
-
   // Create UI card.
   var container = $('#fileList');
   var cardline = $('<div/>')
@@ -355,54 +410,23 @@ function addGcodeCard(gcode, index) {
   var cardtitle = $('<div/>')
     .attr('id', 'gcode-title')
     .addClass('mdl-card__title')
+    .addClass('mdl-card--expand')
     .appendTo(card);
   var cardbody = $('<div/>')
     .addClass('gcode-body')
     .addClass('mdl-card__supporting-text')
     .appendTo(card);
+  var cardactions = $('<div/>')
+    .addClass('gcode-actions')
+    .addClass('mdl-card__actions')
+    .addClass('mdl-card--border')
+    .appendTo(card);
 
-  var tl = $('<div/>')
-    .addClass('gcode-title-line')
-    .appendTo(cardtitle);
-  var sid = $('<div/>')
-    .addClass('gcode-filename')
-    .text(gcode.filename)
-    .appendTo(tl);
-
-  // Status area.
-  var statusArea = $('<div/>')
-    .addClass('container')
-    .addClass('gcode-status')
-    .appendTo(cardbody);
-
-  // Date.
-  var m = new moment(gcode.dateUploaded.seconds * 1000);
-  var dateString = m.format('MMM DD, h:mm:ss a') + ' (' + m.fromNow() + ')';
-
-  $('<div/>')
-    .text('Date uploaded')
-    .appendTo(statusArea);
-  $('<div/>')
-    .attr('id', 'date')
-    .text(dateString)
-    .appendTo(statusArea);
-
-  $('<div/>')
-    .text('File')
-    .appendTo(statusArea);
-  var url = $('<div/>')
-    .attr('id', 'url')
-    .appendTo(statusArea);
-  $('<a/>')
-    .attr('href', gcode.url)
-    .text(gcode.url)
-    .appendTo(url);
-
-  // Preview.
+  // Card title (preview).
   var previewArea = $('<div/>')
     .addClass('container')
     .addClass('gcode-preview')
-    .appendTo(cardbody);
+    .appendTo(cardtitle);
   var previewCanvas = $('<canvas/>')
     .attr('width', 1326)
     .attr('height', 1081)
@@ -414,23 +438,26 @@ function addGcodeCard(gcode, index) {
     previewGcode(data, previewCanvas.get(0), 0, 0, 1.0, true);
   });
 
-  // Button group.
-  var bg = $('<div/>')
-    .addClass('gcode-card-buttons')
-    .appendTo(card);
+  // Card body (supporting text).
+  var tl = $('<div/>')
+    .addClass('gcode-title-line')
+    .appendTo(cardbody);
+  $('<div/>')
+    .addClass('gcode-filename')
+    .text(gcode.filename)
+    .appendTo(tl);
 
-  $('<button/>')
-    .attr('type', 'button')
-    .attr('id', 'gcodeDeleteButton')
+
+  // Card actions.
+  $('<a/>')
     .addClass('mdl-button')
+    .addClass('mdl-button--primary')
     .addClass('mdl-js-button')
-    .addClass('mdl-button--icon')
-    .append($('<i/>').addClass('material-icons').text('delete'))
-    .click(function() {
-      deleteGcodeStart(gcode.filename);
-      $("#deleteGcode").get()[0].showModal();
-    })
-    .appendTo(bg);
+    .addClass('mdl-button--raised')
+    .addClass('mdl-js-ripple-effect')
+    .attr('href', gcode.url)
+    .text('Download')
+    .appendTo(cardactions);
 
   // Needed for MD Lite to kick in.
   componentHandler.upgradeElements(card.get());
@@ -450,7 +477,7 @@ function updateGcodeSelector() {
   }
 }
 
-// The list of devices thta we know about.
+// The list of devices that we know about.
 var devices = new Map();
 
 // Called when we learn about a new device.
@@ -488,10 +515,10 @@ function updateDeviceSelector() {
   }
 }
 
-// Show the static Escher logo on the about canvas.
-function showAboutPreview() {
+// Show the static Escher logo on the login canvas.
+function showLoginPreview() {
   $.get('/escher-logo.gcode', data => {
-    previewGcode(data, $("#aboutCanvas").get(0), 80, 230, 0.9, true);
+    previewGcode(data, $("#loginCanvas").get(0), 80, 230, 0.9, true);
   });
 }
 
@@ -513,26 +540,30 @@ function selectGcode(fname) {
   $.get(gcodeDoc.url, data => {
     curGcodeData = data;
     showGcode();
-    updateEtchButton();
+    updateEtchState();
   })
   .fail(err => {
     showError('Error fetching gcode: ' + err);
     curGcodeData = null;
-    updateEtchButton();
+    updateEtchState();
   });
 }
 
 // The currently selected device.
 var curDevice = null;
 
-function selectDevice(value) {
+// Callback when device selector changes value.
+function deviceSelectChanged(value) {
   curDevice = null;
-
   console.log("Selected device: " + value);
   var mac = value.split(' ')[0];
-  var device = devices.get(mac);
-  curDevice = device;
-  updateEtchButton();
+  selectDevice(device);
+  updateEtchState();
+}
+
+// Select the given device by MAC.
+function selectDevice(mac) {
+  curDevice = devices.get(mac);
 }
 
 function pingDevice(ip) {
@@ -541,7 +572,7 @@ function pingDevice(ip) {
 }
 
 // Update Etch, Pause, and Stop button states.
-function updateEtchButton() {
+function updateEtchState() {
   var ebtn = $('#etchButton');
   var pbtn = $('#pauseButton');
   var sbtn = $('#stopButton');
@@ -551,33 +582,25 @@ function updateEtchButton() {
   var pauseButtonDisabled = true;
   var stopButtonDisabled = true;
 
-  // Only allow etching to be started if both Gcode and device are selected.
-  if (curGcodeData != null && curDevice != null) {
-    etchButtonDisabled = false;
-    pauseButtonDisabled = true;
-    stopButtonDisabled = true;
-  }
-
   // If no device is selected, just set the state now.
   if (curDevice == null) {
-    console.log('Setting state etch ' + etchButtonDisabled + ' stop ' + stopButtonDisabled);
     ebtn.prop('disabled', etchButtonDisabled);
     pbtn.prop('disabled', pauseButtonDisabled);
     sbtn.prop('disabled', stopButtonDisabled);
+    $("#currentDevice").text("no device selected");
     return;
   }
 
+  console.log("Pinging device " + curDevice.ip);
+  $("#currentDeviceState").text("(pinging...)");
   var xhr = pingDevice(curDevice.ip);
-  console.log('Ping xhr:');
-  console.log(xhr);
-
   xhr
     .done(function(data) {
       console.log('Got back ping data:');
       console.log(data);
+      $("#currentDeviceState").text("(" + data.state + ")");
       // Can't start etching when already doing it.
       if (data.state == "etching" || data.state == "paused") {
-        console.log('Hey its etching');
         etchButtonDisabled = true;
         pauseButtonDisabled = false;
         stopButtonDisabled = false;
@@ -591,11 +614,9 @@ function updateEtchButton() {
     .fail(function(data) {
       console.log('Ping failed:');
       console.log(data);
+      $("#currentDeviceState").text("(not responding)");
     })
     .always(function() {
-      console.log('Finally running');
-      console.log('etch: ' + etchButtonDisabled);
-      console.log('stop: ' + stopButtonDisabled);
       ebtn.prop('disabled', etchButtonDisabled);
       pbtn.prop('disabled', pauseButtonDisabled);
       sbtn.prop('disabled', stopButtonDisabled);
@@ -619,8 +640,6 @@ function etchButtonClicked() {
     showError('Unable to parse Gcode!');
   }
   var rendered = render(waypoints, bbox, offset_left, offset_bottom, zoom);
-  console.log('Rendered for device bbox ' + bbox + ':');
-  console.log(rendered);
 
   // Upload the command file.
   uploadCommandFile(rendered, curDevice).then(() => {
@@ -628,6 +647,7 @@ function etchButtonClicked() {
     $('#etchControlSpinner').hide();
     $('#etchUploadingMessage').hide();
     $('#etchReadyMessage').show();
+    $("#currentDeviceState").text("(ready to etch)");
   });
 }
 
@@ -708,7 +728,7 @@ function etchControlStartClicked() {
     showError('Error starting etch: ' + err);
   })
   .always(function() {
-    updateEtchButton();
+    updateEtchState();
   });
 }
 
@@ -738,7 +758,7 @@ function pauseButtonClicked() {
     showError('Error: ' + err.responseText);
   })
   .always(function() {
-    updateEtchButton();
+    updateEtchState();
   });
 }
 
@@ -758,7 +778,7 @@ function stopButtonClicked() {
     showError('Error stopping: ' + err.responseText);
   })
   .always(function() {
-    updateEtchButton();
+    updateEtchState();
   });
 }
 
@@ -771,8 +791,6 @@ function previewGcode(gcodeData, canvas, offsetLeft, offsetBottom, zoomLevel,
     showError('Error: Cannot parse Gcode');
     return;
   }
-  console.log('Parsed ' + waypoints.length + ' waypoints');
-
   if (showFrame) {
     showEtchASketch(canvas, true);
   }
@@ -952,9 +970,6 @@ function render(points, bbox, offsetLeft, offsetBottom, zoomLevel) {
 // Draw the given points on the canvas with a given linewidth.
 function etch(points, canvas, bbox, lineWidth, offsetLeft, offsetBottom,
   zoomLevel) {
-  console.log('Etching ' + points.length +
-      ' points onto bbox ' + JSON.stringify(bbox));
-
   var ctx = canvas.getContext("2d");
 
   // Debugging - draw bounding box.
@@ -979,6 +994,4 @@ function etch(points, canvas, bbox, lineWidth, offsetLeft, offsetBottom,
     ctx.lineTo(x, y);
   });
   ctx.stroke();
-
-  console.log('Etching done');
 }

@@ -62,7 +62,7 @@
     <span class="title"><img height="50px" src="tselogo.png"></img> Escher</span>
     <span id="userinfo">
       <div role="group">
-        <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="login">Login</button>
+        <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" id="adminLogin">Admin login</button>
         <button type="button" class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-js-ripple-effect" id="logout">Logout</button>
       </div>
     </span>
@@ -73,15 +73,35 @@
 
   <header class="mdl-layout__header" id="tabheader">
     <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
-      <a id="etch-tab-button" href="#scroll-tab-etch" class="mdl-layout__tab">Etch</a>
-      <a id="files-tab-button" href="#scroll-tab-files" class="mdl-layout__tab">Files</a>
-      <a id="devices-tab-button" href="#scroll-tab-devices" class="mdl-layout__tab">Devices</a>
-      <a id="firmware-tab-button" href="#scroll-tab-firmware" class="mdl-layout__tab">Firmware</a>
+      <a id="login-tab-button" href="#scroll-tab-login" class="mdl-layout__tab">Login</a>
+      <a id="etch-tab-button" href="#scroll-tab-etch" class="mdl-layout__tab hidden">Etch</a>
+      <a id="files-tab-button" href="#scroll-tab-files" class="mdl-layout__tab hidden">Files</a>
       <a id="about-tab-button" href="#scroll-tab-about" class="mdl-layout__tab">About</a>
     </div>
   </header>
 
     <main class="mdl-layout__content">
+
+      <section class="mdl-layout__tab-panel" id="scroll-tab-login">
+        <div id="loginTab" class="tab-contents">
+          <div class="mdl-grid">
+            <div class="mdl-cell mdl-cell--4-col">
+              <canvas id="loginCanvas" class="responsive" width=1326 height=1081></canvas>
+            </div>
+
+            <div class="mdl-cell mdl-cell--4-col">
+              Welcome to <span class="boldText">Escher</span>, the web-controlled
+              Etch-a-Sketch!
+              <div class="mdl-textfield mdl-js-textfield">
+                <input class="mdl-textfield__input" type="text" id="accessCode">
+                <label class="mdl-textfield__label" for="accessCode">Enter access code...</label>
+                <span id="accessCodeError" class="errorText"></span>
+              </div>
+              <button id="loginButton" type="button" class="mdl-button mdl-button--raised mdl-button--accent" disabled>Login</button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section class="mdl-layout__tab-panel" id="scroll-tab-etch">
         <div class="tab-contents">
@@ -94,13 +114,17 @@
             <div class="mdl-cell mdl-cell--4-col">
               <div id="fileSelector" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <div>
-                  <label for="fileSelect" class="mdl-textfield__label">Gcode file</label>
+                  <label for="fileSelect" class="mdl-textfield__label">Image</label>
                 </div>
                 <div>
                   <select class="mdl-textfield__input" id="fileSelect"></select>
                 </div>
               </div>
-              <div id="deviceSelector" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+              <div id="currentDeviceInfo">
+                Current device: <span id="currentDevice"></span> <span id="currentDeviceState"></span>
+              </div>
+              <!-- Device selector is only visible in admin mode. -->
+              <div id="deviceSelector" class="hidden mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <div>
                   <label for="deviceSelect" class="mdl-textfield__label">Device</label>
                 </div>
@@ -148,32 +172,9 @@
         </div>
       </section>
 
-      <section class="mdl-layout__tab-panel" id="scroll-tab-devices">
-        <div class="tab-contents">
-          Devices
-          <div id="deviceList" class="listgroup"></div>
-          <button id="fileUploadButton" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
-            <i class="material-icons">add</i>
-          </button>
-        </div>
-      </section>
-
-      <section class="mdl-layout__tab-panel" id="scroll-tab-firmware">
-        <div class="tab-contents">
-          Firmware
-          <div id="firmwarelist" class="listgroup"></div>
-          <button id="fileUploadButton" class="mdl-button mdl-js-button mdl-button--fab mdl-button--colored">
-            <i class="material-icons">add</i>
-          </button>
-        </div>
-      </section>
-
       <section class="mdl-layout__tab-panel" id="scroll-tab-about">
         <div id="aboutDescription" class="tab-contents">
           <div class="mdl-grid">
-            <div class="mdl-cell mdl-cell--4-col">
-              <canvas id="aboutCanvas" class="responsive" width=1326 height=1081></canvas>
-            </div>
             <div class="mdl-cell mdl-cell--4-col">
               Escher is a web-controlled, robotic Etch-a-Sketch by <a href="https://teamsidney.com/">Team Sidney Enterprises</a>.
             </div>
