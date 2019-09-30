@@ -15,7 +15,6 @@ function showUI() {
   } else {
     showNormalUI();
   }
-
   // Update the current device info.
   if (curDevice != null) {
     $('#currentDevice').text(curDevice.mac);
@@ -42,7 +41,7 @@ const PHYSICAL_ETCH_A_SKETCH_BBOX = {
   height: 400,
 };
 
-window.onload = function() {
+window.onload = function () {
   setup();
 };
 
@@ -65,17 +64,17 @@ function currentUser() {
 
 // Perform admin login action.
 function doAdminLogin() {
-  firebase.auth().signInWithPopup(provider).then(function(result) {
-  }).catch(function(error) {
+  firebase.auth().signInWithPopup(provider).then(function (result) {
+  }).catch(function (error) {
     showError('Sorry, could not log you in: ' + error.message);
   });
 }
 
 // Log out.
 function logout() {
-  firebase.auth().signOut().then(function() {
+  firebase.auth().signOut().then(function () {
     showUI();
-  }, function(error) {
+  }, function (error) {
     showError('Problem logging out: ' + error.message);
   });
 }
@@ -85,11 +84,11 @@ function showAdminUI() {
   $('#adminLogin').hide();
   $('#logout').show();
 
-  // Show all tabs.
-  $('#login-tab-button').removeClass('hidden');
+  // Hide the login tab.
+  $('#login-tab-button').addClass('hidden');
   $('#etch-tab-button').removeClass('hidden');
   $('#files-tab-button').removeClass('hidden');
-  $('#login-tab-button').removeClass('hidden');
+  $('#about-tab-button').removeClass('hidden');
 
   // Make the etch tab active.
   $('#login-tab-button').removeClass('is-active');
@@ -154,7 +153,6 @@ function showDeviceUI() {
   $('#scroll-tab-etch').addClass('is-active');
   $('#scroll-tab-files').removeClass('is-active');
   $('#scroll-tab-about').removeClass('is-active');
-
 }
 
 // Called when there is an error reading the database.
@@ -182,7 +180,7 @@ function setup() {
   // Access code entry.
   $('#accessCode').off('input');
 
-  $('#accessCode').on('input', function() {
+  $('#accessCode').on('input', function () {
     var code = $('#accessCode').val();
     accessCodeChanged(code);
   });
@@ -196,7 +194,7 @@ function setup() {
     $("#uploadGcode").get()[0].showModal();
   });
   $('#uploadGcodeFile').off('change');
-  $('#uploadGcodeFile').change(function() {
+  $('#uploadGcodeFile').change(function () {
     console.log('uploadGcodeFile changed');
     var file = $('#uploadGcodeFile')[0].files[0];
     uploadGcodeFileSelected(file);
@@ -233,60 +231,60 @@ function setup() {
 
   // Gcode file selector.
   $('#fileSelect').off('change');
-  $('#fileSelect').change(function(e) {
+  $('#fileSelect').change(function (e) {
     selectGcode(this.value);
   });
   // Device selector.
   $('#deviceSelect').off('change');
-  $('#deviceSelect').change(function(e) {
+  $('#deviceSelect').change(function (e) {
     deviceSelectChanged(this.value);
   });
 
   // Control buttons.
   $('#controlLeft').off('click');
-  $('#controlLeft').click(function(e) {
+  $('#controlLeft').click(function (e) {
     controlLeftClicked();
   });
   $('#controlRight').off('click');
-  $('#controlRight').click(function(e) {
+  $('#controlRight').click(function (e) {
     controlRightClicked();
   });
   $('#controlUp').off('click');
-  $('#controlUp').click(function(e) {
+  $('#controlUp').click(function (e) {
     controlUpClicked();
   });
   $('#controlDown').off('click');
-  $('#controlDown').click(function(e) {
+  $('#controlDown').click(function (e) {
     controlDownClicked();
   });
   $('#controlZoomIn').off('click');
-  $('#controlZoomIn').click(function(e) {
+  $('#controlZoomIn').click(function (e) {
     controlZoomInClicked();
   });
   $('#controlZoomOut').off('click');
-  $('#controlZoomOut').click(function(e) {
+  $('#controlZoomOut').click(function (e) {
     controlZoomOutClicked();
   });
   $('#controlHome').off('click');
-  $('#controlHome').click(function(e) {
+  $('#controlHome').click(function (e) {
     controlHomeClicked();
   });
 
   // Action bttons.
   $('#loginButton').off('click');
-  $('#loginButton').click(function(e) {
+  $('#loginButton').click(function (e) {
     loginButtonClicked();
   });
   $('#etchButton').off('click');
-  $('#etchButton').click(function(e) {
+  $('#etchButton').click(function (e) {
     etchButtonClicked();
   });
   $('#stopButton').off('click');
-  $('#stopButton').click(function(e) {
+  $('#stopButton').click(function (e) {
     stopButtonClicked();
   });
   $('#pauseButton').off('click');
-  $('#pauseButton').click(function(e) {
+  $('#pauseButton').click(function (e) {
     pauseButtonClicked();
   });
 
@@ -306,29 +304,29 @@ function setup() {
 
   // Set up listener for Gcode metadata updates.
   db.collection("escher").doc("root").collection("gcode")
-    .onSnapshot(function(snapshot) {
-      snapshot.docChanges().forEach(function(change) {
+    .onSnapshot(function (snapshot) {
+      snapshot.docChanges().forEach(function (change) {
         if (change.type === "added") {
           addGcodeEntry(change.doc.data());
         }
         if (change.type === "removed") {
           removeGcodeEntry(change.doc.data());
         }
-     });
-  });
+      });
+    });
 
   // Set up listener for device metadata updates.
   db.collection("escher").doc("root").collection("devices")
-    .onSnapshot(function(snapshot) {
-      snapshot.docChanges().forEach(function(change) {
+    .onSnapshot(function (snapshot) {
+      snapshot.docChanges().forEach(function (change) {
         if (change.type === "added") {
           addDevice(change.doc.data());
         }
         if (change.type === "removed") {
           removeDevice(change.doc.data());
         }
-     });
-  });
+      });
+    });
 }
 
 // Login tab and access code entry.
@@ -405,7 +403,7 @@ function addGcodeCard(gcode, index) {
     .addClass('gcode-card')
     .addClass('mdl-card')
     .addClass('mdl-shadow--2dp')
-    .attr('id', 'gcode-'+index)
+    .attr('id', 'gcode-' + index)
     .appendTo(cardline);
   var cardtitle = $('<div/>')
     .attr('id', 'gcode-title')
@@ -542,11 +540,11 @@ function selectGcode(fname) {
     showGcode();
     updateEtchState();
   })
-  .fail(err => {
-    showError('Error fetching gcode: ' + err);
-    curGcodeData = null;
-    updateEtchState();
-  });
+    .fail(err => {
+      showError('Error fetching gcode: ' + err);
+      curGcodeData = null;
+      updateEtchState();
+    });
 }
 
 // The currently selected device.
@@ -563,7 +561,9 @@ function deviceSelectChanged(value) {
 
 // Select the given device by MAC.
 function selectDevice(mac) {
+  console.log("Selecting device: " + mac);
   curDevice = devices.get(mac);
+  console.log("curDevice is now " + curDevice);
 }
 
 function pingDevice(ip) {
@@ -595,7 +595,7 @@ function updateEtchState() {
   $("#currentDeviceState").text("(pinging...)");
   var xhr = pingDevice(curDevice.ip);
   xhr
-    .done(function(data) {
+    .done(function (data) {
       console.log('Got back ping data:');
       console.log(data);
       $("#currentDeviceState").text("(" + data.state + ")");
@@ -611,12 +611,12 @@ function updateEtchState() {
         pbtn.html('Pause');
       }
     })
-    .fail(function(data) {
+    .fail(function (data) {
       console.log('Ping failed:');
       console.log(data);
       $("#currentDeviceState").text("(not responding)");
     })
-    .always(function() {
+    .always(function () {
       ebtn.prop('disabled', etchButtonDisabled);
       pbtn.prop('disabled', pauseButtonDisabled);
       sbtn.prop('disabled', stopButtonDisabled);
@@ -654,13 +654,13 @@ function etchButtonClicked() {
 // https://stackoverflow.com/questions/19126994/what-is-the-cleanest-way-to-get-the-progress-of-jquery-ajax-request
 function makeUploadXhr() {
   var xhr = new window.XMLHttpRequest();
-  xhr.upload.addEventListener("progress", function(e) {
+  xhr.upload.addEventListener("progress", function (e) {
     if (e.lengthComputable) {
       var percentComplete = e.loaded / e.total;
       console.log("Upload progress " + percentComplete);
     }
   }, false);
-  xhr.addEventListener("progress", function(e) {
+  xhr.addEventListener("progress", function (e) {
     if (e.lengthComputable) {
       var percentComplete = e.loaded / e.total;
       console.log("Progress " + percentComplete);
@@ -674,7 +674,7 @@ function uploadCommandFile(points, device) {
     device.mac + ' with ip ' + device.ip);
 
   var controlMsg = 'START\n';
-  points.forEach(function(p) {
+  points.forEach(function (p) {
     controlMsg += 'MOVE ' + Math.floor(p.x) + ' ' + Math.floor(p.y) + '\n';
   });
   controlMsg += 'END\n';
@@ -688,7 +688,7 @@ function uploadCommandFile(points, device) {
 
   var formData = new FormData();
   var action = '/upload';
-  var blob = new Blob([controlMsg], { type: "text/plain"});
+  var blob = new Blob([controlMsg], { type: "text/plain" });
   formData.append("file", blob, "cmddata.txt");
 
   var url = 'http://' + device.ip + '/upload';
@@ -701,15 +701,15 @@ function uploadCommandFile(points, device) {
     contentType: false,
     processData: false,
   })
-  .done(function() {
-    console.log('Ajax done!');
-    showMessage('Uploaded image to device at ' + device.ip);
-  })
-  .fail(function() {
-    console.log('Ajax fail!');
-    showError('Unable to upload image to device');
-    $("#etchControl").get()[0].close();
-  });
+    .done(function () {
+      console.log('Ajax done!');
+      showMessage('Uploaded image to device at ' + device.ip);
+    })
+    .fail(function () {
+      console.log('Ajax fail!');
+      showError('Unable to upload image to device');
+      $("#etchControl").get()[0].close();
+    });
 }
 
 // Called when etch control start button is clicked.
@@ -723,13 +723,13 @@ function etchControlStartClicked() {
     $("#etchControl").get()[0].close();
     showMessage('Etching started!');
   })
-  .fail(err => {
-    $("#etchControl").get()[0].close();
-    showError('Error starting etch: ' + err);
-  })
-  .always(function() {
-    updateEtchState();
-  });
+    .fail(err => {
+      $("#etchControl").get()[0].close();
+      showError('Error starting etch: ' + err);
+    })
+    .always(function () {
+      updateEtchState();
+    });
 }
 
 // Called when pause button is clicked.
@@ -752,14 +752,14 @@ function pauseButtonClicked() {
   $.get(url, data => {
     showMessage(action);
   })
-  .fail(err => {
-    console.log('Got error on pause/resume:');
-    console.log(err);
-    showError('Error: ' + err.responseText);
-  })
-  .always(function() {
-    updateEtchState();
-  });
+    .fail(err => {
+      console.log('Got error on pause/resume:');
+      console.log(err);
+      showError('Error: ' + err.responseText);
+    })
+    .always(function () {
+      updateEtchState();
+    });
 }
 
 // Called when stop button is clicked.
@@ -772,14 +772,14 @@ function stopButtonClicked() {
   $.get(url, data => {
     showMessage('Etching stopped!');
   })
-  .fail(err => {
-    console.log('Got error stopping:');
-    console.log(err);
-    showError('Error stopping: ' + err.responseText);
-  })
-  .always(function() {
-    updateEtchState();
-  });
+    .fail(err => {
+      console.log('Got error stopping:');
+      console.log(err);
+      showError('Error stopping: ' + err.responseText);
+    })
+    .always(function () {
+      updateEtchState();
+    });
 }
 
 // Show the given GCode on the canvas.
@@ -866,7 +866,7 @@ function uploadGcodeFileSelected(file) {
 
   console.log('Reading: ' + file.name);
   var reader = new FileReader();
-  reader.onloadend = function() {
+  reader.onloadend = function () {
     uploadGcodePreview(reader.result);
   }
   reader.readAsArrayBuffer(file);
@@ -893,23 +893,23 @@ function uploadGcodeDoUpload() {
   console.log('Starting upload of ' + fname);
   var storageRef = firebase.storage().ref();
   var uploadRef = storageRef.child(fname);
-  uploadRef.put(uploadedGcode).then(function(snapshot) {
+  uploadRef.put(uploadedGcode).then(function (snapshot) {
     // Upload done.
     console.log('Upload complete');
     $('#uploadGcodeSpinner').hide();
     // Add link.
-    uploadRef.getDownloadURL().then(function(url) {
+    uploadRef.getDownloadURL().then(function (url) {
       // Add a DB entry with metadata about the uploaded file.
       db.collection("escher").doc("root").collection("gcode").add({
         dateUploaded: firebase.firestore.FieldValue.serverTimestamp(),
         filename: fname,
         url: url,
-      }).then(function(docRef) {
+      }).then(function (docRef) {
         // Close the dialog.
         console.log('Done with upload, closing dialog');
         $("#uploadGcode").get()[0].close();
         showMessage('Uploaded ' + fname);
-      }).catch(function(error) {
+      }).catch(function (error) {
         // Close the dialog.
         console.log('Upload error, closing dialog');
         $("#uploadGcode").get()[0].close();
@@ -937,9 +937,9 @@ function showEtchASketch(canvas, frame) {
 // the given bounding box.
 function render(points, bbox, offsetLeft, offsetBottom, zoomLevel) {
   var ret = []
-  var last = {x: null, y: null};
+  var last = { x: null, y: null };
   var scaled = scaleToBbox(points, bbox);
-  scaled.forEach(function(elem) {
+  scaled.forEach(function (elem) {
     var x = elem.x;
     var y = elem.y;
 
@@ -958,9 +958,9 @@ function render(points, bbox, offsetLeft, offsetBottom, zoomLevel) {
     if (ty > bbox.y + bbox.height) {
       ty = bbox.y + bbox.height;
     }
-    var pt = {x: tx, y: ty};
+    var pt = { x: tx, y: ty };
     if (pt.x != last.x || pt.y != last.y) {
-      ret.push({x: tx, y: ty});
+      ret.push({ x: tx, y: ty });
       last = pt;
     }
   });
@@ -976,7 +976,7 @@ function etch(points, canvas, bbox, lineWidth, offsetLeft, offsetBottom,
   //ctx.strokeStyle = 'blue';
   //ctx.lineWidth = 5;
   //ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
-  
+
   var rendered = render(points, bbox, offsetLeft, offsetBottom, zoomLevel);
 
   ctx.beginPath();
@@ -985,7 +985,7 @@ function etch(points, canvas, bbox, lineWidth, offsetLeft, offsetBottom,
   // Start at origin.
   ctx.moveTo(bbox.x, (bbox.y + bbox.height));
 
-  rendered.forEach(function(elem) {
+  rendered.forEach(function (elem) {
     var x = elem.x;
     var y = elem.y;
 
