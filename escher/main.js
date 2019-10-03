@@ -141,7 +141,7 @@ function showDeviceUI() {
   $('#login-tab-button').addClass('hidden');
   $('#etch-tab-button').removeClass('hidden');
   $('#files-tab-button').removeClass('hidden');
-  $('#login-tab-button').removeClass('hidden');
+  $('#about-tab-button').removeClass('hidden');
 
   // Make the etch tab active.
   $('#login-tab-button').removeClass('is-active');
