@@ -297,11 +297,6 @@ function setup() {
     showLoginPreview();
   });
 
-  // XXX XXX XXX MDW STOPPED HERE.
-  // - Need to make discovery of gCode files tied to entering a correct access code
-  //    (or being logged in). For now, we can make them public.
-  // - Need to implement TOTA protocol for device discovery.
-
   // Set up listener for Gcode metadata updates.
   db.collection("escher").doc("root").collection("gcode")
     .onSnapshot(function (snapshot) {
@@ -315,18 +310,20 @@ function setup() {
       });
     });
 
-  // Set up listener for device metadata updates.
-  db.collection("escher").doc("root").collection("devices")
-    .onSnapshot(function (snapshot) {
-      snapshot.docChanges().forEach(function (change) {
-        if (change.type === "added") {
-          addDevice(change.doc.data());
-        }
-        if (change.type === "removed") {
-          removeDevice(change.doc.data());
-        }
+  // Set up listener for device metadata updates, only if we're an admin.
+  if (currentUser() != null) {
+    db.collection("escher").doc("root").collection("secret")
+      .onSnapshot(function (snapshot) {
+        snapshot.docChanges().forEach(function (change) {
+          if (change.type === "added") {
+            addDevice(change.doc);
+          }
+          if (change.type === "removed") {
+            removeDevice(change.doc);
+          }
+        });
       });
-    });
+  }
 }
 
 // Login tab and access code entry.
@@ -350,16 +347,7 @@ function loginButtonClicked() {
   }
 
   // TODO(mdw): Implement actual TOTA code check.
-  if (code != "abc123") {
-    $("#accessCodeError").text("Invalid access code!");
-    $("#accessCodeError").show();
-    return;
-  }
-
-  // TODO(mdw): Implement actual device info fetch.
-  selectDevice("30:AE:A4:20:A0:A4");
-  showUI();
-  updateEtchState();
+  findDevice(code);
 }
 
 // The list of Gcode files that we know about.
@@ -480,13 +468,17 @@ var devices = new Map();
 
 // Called when we learn about a new device.
 function addDevice(deviceDoc) {
-  devices.set(deviceDoc.mac, deviceDoc);
+  console.log('MDW: addDevice called with:')
+  console.log(deviceDoc);
+  devices.set(deviceDoc.id, deviceDoc.data());
   updateDeviceSelector();
 }
 
 // Called when a device has been deleted.
 function removeDevice(deviceDoc) {
-  devices.delete(deviceDoc.mac);
+  console.log('MDW: removeDevice called with:')
+  console.log(deviceDoc);
+  devices.delete(deviceDoc.id);
   updateDeviceSelector();
 }
 
@@ -501,7 +493,7 @@ function updateDeviceSelector() {
     var ds = 'never';
     var d = devices.get(mac);
     if (d != null) {
-      var ts = d.updateTime;
+      var ts = d.checkin;
       if (ts != null) {
         var m = moment.unix(ts.seconds);
         ds = m.fromNow();
@@ -522,6 +514,8 @@ function showLoginPreview() {
 
 // The currently selected Gcode data object.
 var curGcodeData = null;
+// The currently selected Gcode filename.
+var curGcodeFname = null;
 
 function selectGcode(fname) {
   curGcodeData = null;
@@ -537,41 +531,81 @@ function selectGcode(fname) {
 
   $.get(gcodeDoc.url, data => {
     curGcodeData = data;
+    curGcodeFname = fname;
     showGcode();
     updateEtchState();
-  })
-    .fail(err => {
-      showError('Error fetching gcode: ' + err);
-      curGcodeData = null;
-      updateEtchState();
-    });
+  }).fail(err => {
+    showError('Error fetching gcode: ' + err);
+    curGcodeData = null;
+    updateEtchState();
+  });
 }
 
 // The currently selected device.
 var curDevice = null;
+var curDeviceID = null;
+var curDeviceListener = null;
 
 // Callback when device selector changes value.
 function deviceSelectChanged(value) {
-  curDevice = null;
   console.log("Selected device: " + value);
   var mac = value.split(' ')[0];
-  selectDevice(device);
+  selectDevice(mac, devices.get(mac));
   updateEtchState();
 }
 
+// Look for a device checkin using the given secret.
+function findDevice(accessCode) {
+  db.collection("escher").doc("root").collection('secret').doc(accessCode).collection('devices').get()
+    .then((result) => {
+      console.log("MDW: result.docs is");
+      console.log(result.docs);
+      if (result.docs == null || result.docs.empty) {
+        showMessage("Bad access code.");
+        return;
+      }
+      // If more than one device is using the same access code, we arbitrarily use the
+      // one with the newest checkin time.
+      var chosenDoc = null;
+      result.docs.forEach((d) => {
+        if (chosenDoc == null || d.data().checkin > newest) {
+          chosenDoc = d;
+        }
+      });
+
+      if (chosenDoc == null) {
+        // Nothing found at this location.
+        showMessage("Bad access code.");
+        return;
+      }
+
+      selectDevice(chosenDoc.id, chosenDoc.data());
+      showMessage("Selected device: " + chosenDoc.id);
+      showUI();
+      updateEtchState();
+
+      // Subscribe to status updates on this device entry.
+      curDeviceListener = chosenDoc.ref.onSnapshot((snapshot) => {
+        updateEtchState();
+      });
+
+    });
+}
+
 // Select the given device by MAC.
-function selectDevice(mac) {
+function selectDevice(mac, device) {
   console.log("Selecting device: " + mac);
-  curDevice = devices.get(mac);
+  // Unsubscribe to state changes on old device.
+  if (curDeviceListener != null) {
+    curDeviceListener();
+    curDeviceListener = null;
+  }
+  curDeviceID = mac;
+  curDevice = device;
   console.log("curDevice is now " + curDevice);
 }
 
-function pingDevice(ip) {
-  var url = 'http://' + ip + '/ping';
-  return $.get(url);
-}
-
-// Update Etch, Pause, and Stop button states.
+// Update UI state associated with the state of the currently-selected device.
 function updateEtchState() {
   var ebtn = $('#etchButton');
   var pbtn = $('#pauseButton');
@@ -591,36 +625,34 @@ function updateEtchState() {
     return;
   }
 
-  console.log("Pinging device " + curDevice.ip);
-  $("#currentDeviceState").text("(pinging...)");
-  var xhr = pingDevice(curDevice.ip);
-  xhr
-    .done(function (data) {
-      console.log('Got back ping data:');
-      console.log(data);
-      $("#currentDeviceState").text("(" + data.state + ")");
-      // Can't start etching when already doing it.
-      if (data.state == "etching" || data.state == "paused") {
-        etchButtonDisabled = true;
-        pauseButtonDisabled = false;
-        stopButtonDisabled = false;
-      }
-      if (data.state == "paused") {
-        pbtn.html('Resume');
-      } else {
-        pbtn.html('Pause');
-      }
-    })
-    .fail(function (data) {
-      console.log('Ping failed:');
-      console.log(data);
-      $("#currentDeviceState").text("(not responding)");
-    })
-    .always(function () {
-      ebtn.prop('disabled', etchButtonDisabled);
-      pbtn.prop('disabled', pauseButtonDisabled);
-      sbtn.prop('disabled', stopButtonDisabled);
-    });
+  // TODO(mdw): Implement fetch of device state from checkin.
+  var deviceState = curDevice.status;
+  var ts = curDevice.checkin;
+  var ds = "never";
+  if (ts != null) {
+    var m = moment.unix(ts.seconds);
+    ds = m.fromNow();
+  }
+  $("#currentDeviceState").text(curDeviceID + ": " + deviceState + ", last seen " + ds);
+
+  // Can't start etching when already doing it.
+  if (deviceState == "idle" && curGcodeData != null) {
+    etchButtonDisabled = false;
+    pauseButtonDisabled = true;
+    stopButtonDisabled = true;
+  } else if (deviceState == "etching" || deviceState == "paused") {
+    etchButtonDisabled = true;
+    pauseButtonDisabled = false;
+    stopButtonDisabled = false;
+  }
+  if (deviceState == "paused") {
+    pbtn.html('Resume');
+  } else {
+    pbtn.html('Pause');
+  }
+  ebtn.prop('disabled', etchButtonDisabled);
+  pbtn.prop('disabled', pauseButtonDisabled);
+  sbtn.prop('disabled', stopButtonDisabled);
 }
 
 // Called when Etch button is clicked.
@@ -638,6 +670,7 @@ function etchButtonClicked() {
   var waypoints = parseGcode(curGcodeData);
   if (waypoints == null) {
     showError('Unable to parse Gcode!');
+    return;
   }
   var rendered = render(waypoints, bbox, offset_left, offset_bottom, zoom);
 
@@ -647,69 +680,34 @@ function etchButtonClicked() {
     $('#etchControlSpinner').hide();
     $('#etchUploadingMessage').hide();
     $('#etchReadyMessage').show();
-    $("#currentDeviceState").text("(ready to etch)");
   });
 }
 
-// https://stackoverflow.com/questions/19126994/what-is-the-cleanest-way-to-get-the-progress-of-jquery-ajax-request
-function makeUploadXhr() {
-  var xhr = new window.XMLHttpRequest();
-  xhr.upload.addEventListener("progress", function (e) {
-    if (e.lengthComputable) {
-      var percentComplete = e.loaded / e.total;
-      console.log("Upload progress " + percentComplete);
-    }
-  }, false);
-  xhr.addEventListener("progress", function (e) {
-    if (e.lengthComputable) {
-      var percentComplete = e.loaded / e.total;
-      console.log("Progress " + percentComplete);
-    }
-  }, false);
-  return xhr;
-}
+// The URL of the current command file to be etched.
+var curEscherFileURL = null;
 
 function uploadCommandFile(points, device) {
-  console.log('Starting drawing of ' + points.length + ' points on ' +
-    device.mac + ' with ip ' + device.ip);
-
   var controlMsg = 'START\n';
   points.forEach(function (p) {
     controlMsg += 'MOVE ' + Math.floor(p.x) + ' ' + Math.floor(p.y) + '\n';
   });
   controlMsg += 'END\n';
 
-  console.log('Uploading ' + controlMsg.length + ' bytes to device');
-
-  // Fake a file upload via FormData:
-  // https://developer.mozilla.org/en-US/docs/Web/API/FormData/Using_FormData_Objects
-  // This is necessary because we have great built-in support for large file uploads
-  // on the ESP32, so we want to make use of that.
-
-  var formData = new FormData();
-  var action = '/upload';
-  var blob = new Blob([controlMsg], { type: "text/plain" });
-  formData.append("file", blob, "cmddata.txt");
-
-  var url = 'http://' + device.ip + '/upload';
-
-  return $.ajax({
-    xhr: makeUploadXhr,
-    url: url,
-    data: formData,
-    type: 'POST',
-    contentType: false,
-    processData: false,
-  })
-    .done(function () {
-      console.log('Ajax done!');
-      showMessage('Uploaded image to device at ' + device.ip);
-    })
-    .fail(function () {
-      console.log('Ajax fail!');
-      showError('Unable to upload image to device');
-      $("#etchControl").get()[0].close();
+  // Upload the control file to Firebase Storage and get its URL.
+  var fname = curGcodeFname + "_" + new Date().getTime() + ".escher";
+  console.log('Starting upload of ' + fname);
+  var storageRef = firebase.storage().ref();
+  var uploadRef = storageRef.child("escher/cmdfiles/" + fname);
+  return uploadRef.putString(controlMsg).then(function (snapshot) {
+    // Upload done.
+    console.log('Upload complete');
+    uploadRef.getDownloadURL().then(function (url) {
+      curEscherFileURL = null;
+      return new Promise(resolve => {
+        console.log("MDW: Promise resolve called");
+      });
     });
+  });
 }
 
 // Called when etch control start button is clicked.
@@ -718,18 +716,15 @@ function etchControlStartClicked() {
     showError('No device selected');
     return;
   }
-  var url = 'http://' + curDevice.ip + '/etch';
-  $.get(url, data => {
-    $("#etchControl").get()[0].close();
-    showMessage('Etching started!');
-  })
-    .fail(err => {
-      $("#etchControl").get()[0].close();
-      showError('Error starting etch: ' + err);
-    })
-    .always(function () {
-      updateEtchState();
-    });
+  if (curEscherFileURL == null) {
+    showError('No Gcode ready for etching');
+    return;
+  }
+
+  // TODO(mdw): Push control message to device to start etching.
+  $("#etchControl").get()[0].close();
+  showMessage('Etching started!');
+  updateEtchState();
 }
 
 // Called when pause button is clicked.
@@ -739,27 +734,17 @@ function pauseButtonClicked() {
     return;
   }
 
+  // TODO(mdw): Push control message to device to pause or restart etching.
+
   var state = $("#pauseButton").html();
-  var url;
   var action;
   if (state == "Pause") {
-    url = 'http://' + curDevice.ip + '/pause';
     action = 'Etching paused!';
   } else {
-    url = 'http://' + curDevice.ip + '/resume';
     action = 'Etching resumed!';
   }
-  $.get(url, data => {
-    showMessage(action);
-  })
-    .fail(err => {
-      console.log('Got error on pause/resume:');
-      console.log(err);
-      showError('Error: ' + err.responseText);
-    })
-    .always(function () {
-      updateEtchState();
-    });
+  showMessage(action);
+  updateEtchState();
 }
 
 // Called when stop button is clicked.
@@ -768,18 +753,11 @@ function stopButtonClicked() {
     showError('No device selected');
     return;
   }
-  var url = 'http://' + curDevice.ip + '/stop';
-  $.get(url, data => {
-    showMessage('Etching stopped!');
-  })
-    .fail(err => {
-      console.log('Got error stopping:');
-      console.log(err);
-      showError('Error stopping: ' + err.responseText);
-    })
-    .always(function () {
-      updateEtchState();
-    });
+
+  // TODO(mdw): Push control message to stop etching.
+
+  showMessage('Etching stopped!');
+  updateEtchState();
 }
 
 // Show the given GCode on the canvas.
@@ -892,7 +870,7 @@ function uploadGcodeDoUpload() {
   var fname = uploadedGcode.name;
   console.log('Starting upload of ' + fname);
   var storageRef = firebase.storage().ref();
-  var uploadRef = storageRef.child(fname);
+  var uploadRef = storageRef.child("escher/gcode/" + fname);
   uploadRef.put(uploadedGcode).then(function (snapshot) {
     // Upload done.
     console.log('Upload complete');
