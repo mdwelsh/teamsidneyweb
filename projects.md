@@ -11,7 +11,7 @@ T.I.C.A.L.S. (The Interesting and Completely Awesome Laser System) T.I.C.A.L.S. 
 # Blinky
 
 {:.center}
-![Blinky GIF](/blinky.gif){:width="40%"}
+![Blinky GIF](/blinky-house.gif){:width="40%"}
 
 Blinky is a cloud-controlled, programmable home light display based on
 the amazing [Feather HUZZAH32](https://www.adafruit.com/product/3405)
