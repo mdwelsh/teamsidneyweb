@@ -3,10 +3,20 @@ title: Our projects
 ---
 Check out some of Team Sidney Enterprises' projects below.
 
+# Theosaber
+
+{:.center}
+![Theosaber](theosaber.jpg){:height="200px"}
+![Theo and Luke](theosaber-theo.jpg){:height="200px"}
+
+Theo's Halloween costume for 2019 was to be Luke Skywalker from Return of the Jedi, so naturally, he needed a lightsaber. We designed and built this lightsaber, using a custom 3D printed handle, [Luxeon Rebel LED module](https://www.luxeonstar.com/any-3-rebel-leds-mounted-on-a-20mm-tri-star-sinkpad), and a plexiglass acrylic tube for the blade. 
+
+* [STL files and build instructions](https://www.thingiverse.com/thing:3952536)
+
 # Space Invaders Costume
 
 {:.center}
-![Space Invaders Costume](spaceinvaders.jpg){:height="200px"}
+![Space Invaders Costume](spaceinvaders-costume.jpg){:height="200px"}
 ![Matt in the Space Invaders Costume](spaceinvaders-mdw.jpg){:height="200px"}
 
 For Halloween 2019, Matt wanted to recreate one of his favorite video games of all time -- Space Invaders. This is a
