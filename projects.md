@@ -6,8 +6,8 @@ Check out some of Team Sidney Enterprises' projects below.
 # Theosaber
 
 {:.center}
-![Theosaber](theosaber.jpg){:height="200px"}
-![Theo and Luke](theosaber-theo.jpg){:height="200px"}
+[![Theosaber](theosaber.jpg){:height="300px"}](theosaber.jpg)
+[![Theo and Luke](theosaber-theo.jpg){:height="300px"}](theosaber-theo.jpg)
 
 Theo's Halloween costume for 2019 was to be Luke Skywalker from Return of the Jedi, so naturally, he needed a lightsaber. We designed and built this lightsaber, using a custom 3D printed handle, [Luxeon Rebel LED module](https://www.luxeonstar.com/any-3-rebel-leds-mounted-on-a-20mm-tri-star-sinkpad), and a plexiglass acrylic tube for the blade. 
 
@@ -16,8 +16,8 @@ Theo's Halloween costume for 2019 was to be Luke Skywalker from Return of the Je
 # Space Invaders Costume
 
 {:.center}
-![Space Invaders Costume](spaceinvaders-costume.jpg){:height="200px"}
-![Matt in the Space Invaders Costume](spaceinvaders-mdw.jpg){:height="200px"}
+![Space Invaders Costume](spaceinvaders-costume.jpg){:height="300px"}
+![Matt in the Space Invaders Costume](spaceinvaders-mdw.jpg){:height="300px"}
 
 For Halloween 2019, Matt wanted to recreate one of his favorite video games of all time -- Space Invaders. This is a
 wearable Space Invaders cabinet made out of foamcore board, using custom 3D printed brackets (designed by Sidney!) to connect the panels together. Two [DotStar LED strips](https://www.adafruit.com/product/2241) are attached to the side of the screen, programmed using a variant of [Blinky](blinky) to light up in various patterns. 3D printed Space Invaders figures dangle over the screen. The panels are decorated with vintage Space Invaders graphics printed onto [laser-printable chemical labels](https://www.amazon.com/gp/product/B010Q6CY38/), carefully overlapped onto the foamcore. [Arcade joystick and buttons](https://www.amazon.com/gp/product/B07JFXQSM5) are on the control panel, although they are not functional. The coin slots are torn out of [vintage coin slot keychains](https://www.amazon.com/gp/product/B07BLQ72GB/) with a custom circuit to light them.
