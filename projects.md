@@ -5,8 +5,13 @@ Check out some of Team Sidney Enterprises' projects below.
 
 # T.I.C.A.L.S.
 
-T.I.C.A.L.S. (The Interesting and Completely Awesome Laser System) T.I.C.A.L.S. is a security system for Sidney's door. It uses a laser pointing at a photoresistor to determine whether somebody has entered the room.
 
+{:.center}
+![T.I.C.A.L.S.](ticals.jpg){:height="300px"}
+![T.I.C.A.L.S. circuit board](ticals-board.jpg){:height="300px"}
+![Sidney at the science fair](ticals-sidney.jpg){:height="300px"}
+
+T.I.C.A.L.S. (The Interesting and Completely Awesome Laser System) is a security system for Sidney's door based on a laser break-beam sensor and a [NeoTrellis M4 board](https://www.adafruit.com/product/3938) running CircuitPython. Sidney built this for his fourth-grade science fair project. A custom circuit board is used to route power from a USB charger to both the Trellis and the laser diode. A photoresistor mounted on the opposite side of the door detects whether the laser beam has been broken. When this happens, an audible alarm sounds. A security code can be entered on the Trellis keypad to disarm the alarm.
 
 # Blinky
 
