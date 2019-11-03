@@ -3,13 +3,21 @@ title: Our projects
 ---
 Check out some of Team Sidney Enterprises' projects below.
 
-# T.I.C.A.L.S.
-
+# Space Invaders Costume
 
 {:.center}
-![T.I.C.A.L.S.](ticals.jpg){:height="300px"}
-![T.I.C.A.L.S. circuit board](ticals-board.jpg){:height="300px"}
-![Sidney at the science fair](ticals-sidney.jpg){:height="300px"}
+![Space Invaders Costume](spaceinvaders.jpg){:height="200px"}
+![Matt in the Space Invaders Costume](spaceinvaders-mdw.jpg){:height="200px"}
+
+For Halloween 2019, Matt wanted to recreate one of his favorite video games of all time -- Space Invaders. This is a
+wearable Space Invaders cabinet made out of foamcore board, using custom 3D printed brackets (designed by Sidney!) to connect the panels together. Two [DotStar LED strips](https://www.adafruit.com/product/2241) are attached to the side of the screen, programmed using a variant of [Blinky](blinky) to light up in various patterns. 3D printed Space Invaders figures dangle over the screen. The panels are decorated with vintage Space Invaders graphics printed onto [laser-printable chemical labels](https://www.amazon.com/gp/product/B010Q6CY38/), carefully overlapped onto the foamcore. [Arcade joystick and buttons](https://www.amazon.com/gp/product/B07JFXQSM5) are on the control panel, although they are not functional. The coin slots are torn out of [vintage coin slot keychains](https://www.amazon.com/gp/product/B07BLQ72GB/) with a custom circuit to light them.
+
+# T.I.C.A.L.S.
+
+{:.center}
+![T.I.C.A.L.S.](ticals.jpg){:height="200px"}
+![T.I.C.A.L.S. circuit board](ticals-board.jpg){:height="200px"}
+![Sidney at the science fair](ticals-sidney.jpg){:height="200px"}
 
 T.I.C.A.L.S. (The Interesting and Completely Awesome Laser System) is a security system for Sidney's door based on a laser break-beam sensor and a [NeoTrellis M4 board](https://www.adafruit.com/product/3938) running CircuitPython. Sidney built this for his fourth-grade science fair project. A custom circuit board is used to route power from a USB charger to both the Trellis and the laser diode. A photoresistor mounted on the opposite side of the door detects whether the laser beam has been broken. When this happens, an audible alarm sounds. A security code can be entered on the Trellis keypad to disarm the alarm.
 
