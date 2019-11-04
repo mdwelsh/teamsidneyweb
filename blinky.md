@@ -1,8 +1,8 @@
 # Blinky - The Cloud-Controlled LED Light Display
 
 {:.center}
-![Blinky GIF](/blinky.gif){:height="200px"}
-![Blinky hardware](/blinky-hardware.jpg){:height="200px"}
+![Blinky GIF](/images/blinky.gif){:height="200px"}
+![Blinky hardware](/images/blinky-hardware.jpg){:height="200px"}
 
 Blinky is a cloud-controlled, programmable home light display based on
 the amazing [Feather HUZZAH32](https://www.adafruit.com/product/3405)
@@ -89,7 +89,7 @@ port, so use the serial monitor if things do not seem to be working.
 ## Web interface
 
 {:.center}
-![Blinky web interface](/blinky-screenshot.png){:width="50%"}
+![Blinky web interface](/images/blinky-screenshot.png){:width="50%"}
 
 The web interface uses the Firebase JS API to read and write data to
 Firebase. To use this with your own project, you need to edit the code

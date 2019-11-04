@@ -5,14 +5,14 @@ and more ideas than free time to work on them.
 
 ## About Sidney
 
-![Picture of Sidney soldering](sidney-workshop.jpg){:height="250px"}
+![Picture of Sidney soldering](/images/sidney-workshop.jpg){:height="250px"}
 
 Sidney is a student at West Woodland Elementary school who likes chemistry,
 electronics, hacking, and laser cutters.
 
 ## About Matt
 
-![Picture of matt](mdw.jpg){:height="250px"}
+![Picture of Matt](/images/mdw.jpg){:height="250px"}
 
 [Matt](https://www.mdw.la/) works at [Xnor.ai](https://xnor.ai/) in Seattle, WA,
 an early-stage AI startup developing machine learning software for embedded systems.
