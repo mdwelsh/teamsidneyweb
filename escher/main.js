@@ -283,10 +283,6 @@ function setup() {
   $('#stopButton').click(function (e) {
     stopButtonClicked();
   });
-  $('#pauseButton').off('click');
-  $('#pauseButton').click(function (e) {
-    pauseButtonClicked();
-  });
 
   // Load Etch-A-Sketch background image.
   backgroundImage = new Image();
@@ -330,8 +326,7 @@ function setup() {
 
 function accessCodeChanged(code) {
   $("#accessCodeError").hide();
-  // Only allow login on 6-digit entry.
-  if (code.length == 6) {
+  if (code.length > 0) {
     $("#loginButton").prop('disabled', false);
   } else {
     $("#loginButton").prop('disabled', true);
@@ -340,13 +335,6 @@ function accessCodeChanged(code) {
 
 function loginButtonClicked() {
   var code = $('#accessCode').val();
-  if (code.length != 6) {
-    $("#accessCodeError").text("Code must be 6 characters");
-    $("#accessCodeError").show();
-    return;
-  }
-
-  // TODO(mdw): Implement actual TOTA code check.
   findDevice(code);
 }
 
@@ -493,7 +481,7 @@ function updateDeviceSelector() {
     var ds = 'never';
     var d = devices.get(mac);
     if (d != null) {
-      var ts = d.checkin;
+      var ts = d.updateTime;
       if (ts != null) {
         var m = moment.unix(ts.seconds);
         ds = m.fromNow();
@@ -568,7 +556,7 @@ function findDevice(accessCode) {
       // one with the newest checkin time.
       var chosenDoc = null;
       result.docs.forEach((d) => {
-        if (chosenDoc == null || d.data().checkin > newest) {
+        if (chosenDoc == null || d.data().updateTime > newest) {
           chosenDoc = d;
         }
       });
@@ -588,7 +576,6 @@ function findDevice(accessCode) {
       curDeviceListener = chosenDoc.ref.onSnapshot((snapshot) => {
         updateEtchState();
       });
-
     });
 }
 
@@ -608,79 +595,44 @@ function selectDevice(mac, device) {
 // Update UI state associated with the state of the currently-selected device.
 function updateEtchState() {
   var ebtn = $('#etchButton');
-  var pbtn = $('#pauseButton');
   var sbtn = $('#stopButton');
 
   // By default no buttons are enabled.
   var etchButtonDisabled = true;
-  var pauseButtonDisabled = true;
   var stopButtonDisabled = true;
 
   // If no device is selected, just set the state now.
   if (curDevice == null) {
     ebtn.prop('disabled', etchButtonDisabled);
-    pbtn.prop('disabled', pauseButtonDisabled);
     sbtn.prop('disabled', stopButtonDisabled);
     $("#currentDevice").text("no device selected");
     return;
   }
 
-  // TODO(mdw): Implement fetch of device state from checkin.
   var deviceState = curDevice.status;
-  var ts = curDevice.checkin;
+  var ts = curDevice.updateTime;
   var ds = "never";
   if (ts != null) {
     var m = moment.unix(ts.seconds);
     ds = m.fromNow();
   }
-  $("#currentDeviceState").text(curDeviceID + ": " + deviceState + ", last seen " + ds);
+  $("#currentDeviceState").text(deviceState + ", last seen " + ds);
 
-  // Can't start etching when already doing it.
   if (deviceState == "idle" && curGcodeData != null) {
     etchButtonDisabled = false;
-    pauseButtonDisabled = true;
     stopButtonDisabled = true;
-  } else if (deviceState == "etching" || deviceState == "paused") {
+  } else if (deviceState == "etching") {
     etchButtonDisabled = true;
-    pauseButtonDisabled = false;
     stopButtonDisabled = false;
   }
-  if (deviceState == "paused") {
-    pbtn.html('Resume');
-  } else {
-    pbtn.html('Pause');
-  }
   ebtn.prop('disabled', etchButtonDisabled);
-  pbtn.prop('disabled', pauseButtonDisabled);
   sbtn.prop('disabled', stopButtonDisabled);
 }
 
 // Called when Etch button is clicked.
 function etchButtonClicked() {
   // Show the etch control dialog.
-  var btn = $('#etchControlStart');
-  btn.prop('disabled', true);
-  $('#etchControlSpinner').show();
-  $('#etchUploadingMessage').show();
-  $('#etchReadyMessage').hide();
   $("#etchControl").get(0).showModal();
-
-  // Render the Gcode to commands for the Etch-a-Sketch.
-  var bbox = PHYSICAL_ETCH_A_SKETCH_BBOX;
-  var waypoints = parseGcode(curGcodeData);
-  if (waypoints == null) {
-    showError('Unable to parse Gcode!');
-    return;
-  }
-  var rendered = render(waypoints, bbox, offset_left, offset_bottom, zoom);
-
-  // Upload the command file.
-  uploadCommandFile(rendered, curDevice).then(() => {
-    btn.prop('disabled', false);
-    $('#etchControlSpinner').hide();
-    $('#etchUploadingMessage').hide();
-    $('#etchReadyMessage').show();
-  });
 }
 
 // The URL of the current command file to be etched.
@@ -727,26 +679,6 @@ function etchControlStartClicked() {
   updateEtchState();
 }
 
-// Called when pause button is clicked.
-function pauseButtonClicked() {
-  if (curDevice == null) {
-    showError('No device selected');
-    return;
-  }
-
-  // TODO(mdw): Push control message to device to pause or restart etching.
-
-  var state = $("#pauseButton").html();
-  var action;
-  if (state == "Pause") {
-    action = 'Etching paused!';
-  } else {
-    action = 'Etching resumed!';
-  }
-  showMessage(action);
-  updateEtchState();
-}
-
 // Called when stop button is clicked.
 function stopButtonClicked() {
   if (curDevice == null) {
@@ -775,7 +707,6 @@ function previewGcode(gcodeData, canvas, offsetLeft, offsetBottom, zoomLevel,
   etch(waypoints, canvas, VIRTUAL_ETCH_A_SKETCH_BBOX, 1, offsetLeft,
     offsetBottom, zoomLevel);
 }
-
 
 // Code for control buttons.
 var offset_left = 0;
@@ -808,13 +739,37 @@ function controlZoomOutClicked() {
   showGcode();
 }
 function controlHomeClicked() {
-  offset_left = 0;
-  offset_bottom = 0;
-  zoom = 1.0;
+  // Figure out optimal settings so the image fits.
+  var bbox = VIRTUAL_ETCH_A_SKETCH_BBOX.height;
+  var waypoints = parseGcode(curGcodeData);
+  var minx = Math.min(...waypoints.map(wp => wp.x));
+  var maxx = Math.max(...waypoints.map(wp => wp.x));
+  var miny = Math.min(...waypoints.map(wp => wp.y));
+  var maxy = Math.max(...waypoints.map(wp => wp.y));
+  console.log("MDW: minx " + minx + " miny " + miny + " maxx " + maxx + " maxy " + maxy);
+
+  // XXX MDW - THIS IS BUGGY.
+  var dx = maxx - minx;
+  var dy = maxy - miny;
+  x_y_ratio = bbox.width/bbox.height;
+  // Scale longest axis (in proportion to bbox size) to fit.
+  var scale;
+  if ((dx/x_y_ratio) > dy) {
+    // Image is wider than it is tall.
+    zoom = bbox.width / dx;
+    offset_left = -1.0 * minx;
+    offset_bottom = -1.0 * miny + ((bbox.height - (dy * zoom)) / 2.0);
+  } else {
+    // Image is taller than it is wide.
+    zoom = bbox.height / dy;
+    offset_left = -1.0 * minx + ((bbox.width - (dy * zoom)) / 2.0);
+    offset_bottom = -1.0 * miny;
+  }
   showGcode();
 }
 
 function showGcode() {
+  console.log("MDW: offset_left " + offset_left + " offset_bottom " + offset_bottom + " zoom " + zoom);
   previewGcode(curGcodeData, $("#etchCanvas").get(0),
     offset_left, offset_bottom, zoom, true);
 }
@@ -916,8 +871,7 @@ function showEtchASketch(canvas, frame) {
 function render(points, bbox, offsetLeft, offsetBottom, zoomLevel) {
   var ret = []
   var last = { x: null, y: null };
-  var scaled = scaleToBbox(points, bbox);
-  scaled.forEach(function (elem) {
+  points.forEach(function (elem) {
     var x = elem.x;
     var y = elem.y;
 

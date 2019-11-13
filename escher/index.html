@@ -121,14 +121,14 @@
             <div class="mdl-cell mdl-cell--4-col">
               <div id="fileSelector" class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                 <div>
-                  <label for="fileSelect" class="mdl-textfield__label">Image</label>
+                  <label for="fileSelect" class="mdl-textfield__label">Select image</label>
                 </div>
                 <div>
                   <select class="mdl-textfield__input" id="fileSelect"></select>
                 </div>
               </div>
               <div id="currentDeviceInfo">
-                Current device: <span id="currentDevice"></span> <span id="currentDeviceState"></span>
+                 Device: <span id="currentDevice"></span> <span id="currentDeviceState"></span>
               </div>
               <!-- Device selector is only visible in admin mode. -->
               <div id="deviceSelector" class="hidden mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
@@ -142,8 +142,6 @@
               <div role="group">
                 <button id="etchButton" type="button" class="mdl-button mdl-button--raised mdl-button--accent"
                   disabled>Etch!</button>
-                <button id="pauseButton" type="button" class="mdl-button mdl-button--raised mdl-button--accent"
-                  disabled>Pause</button>
                 <button id="stopButton" type="button" class="mdl-button mdl-button--raised mdl-button--colored"
                   disabled>Stop</button>
               </div>
@@ -241,20 +239,19 @@
   <dialog id="etchControl" class="mdl-dialog">
     <div class="etchControlHeader">
       <div class="mdl-dialog__title" id="etchControlTitle">
-        Start Etching
+        Ready to etch?
       </div>
     </div>
     <!-- Etch control body -->
     <div class="mdl-dialog__content" id="etchControlBody">
-      <div class="etchControlMessage" id="etchUploadingMessage">Uploading image...</div>
-      <div id="etchControlSpinner" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>
-      <div class="etchControlMessage" id="etchReadyMessage">Ready to Etch</div>
+      <div class="etchControlMessage" id="etchConfirmMessage">
+        Erase the Etch-a-Sketch, set pointer to lower left corner, and click the <span class="boldText">Start</span> button below.
+      </div>
     </div>
     <div class="mdl-dialog__actions">
       <div role="group">
         <button id="etchControlCancel" type="button" class="mdl-button">Cancel</button>
-        <button id="etchControlStart" type="button" class="mdl-button mdl-button--raised mdl-button--colored"
-          disabled>Start</button>
+        <button id="etchControlStart" type="button" class="mdl-button mdl-button--raised mdl-button--colored">Start</button>
       </div>
     </div>
   </dialog>
