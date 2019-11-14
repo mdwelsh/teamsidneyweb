@@ -343,7 +343,6 @@ var gcodeFiles = new Map();
 
 // Called when we learn about a new Gcode file.
 function addGcodeEntry(gcodeDoc) {
-  console.log("MDW: addGcodeEntry called");
   gcodeFiles.set(gcodeDoc.filename, gcodeDoc);
   updateGcodeSelector();
   addGcodeCard(gcodeDoc, gcodeFiles.size);
@@ -456,16 +455,12 @@ var devices = new Map();
 
 // Called when we learn about a new device.
 function addDevice(deviceDoc) {
-  console.log('MDW: addDevice called with:')
-  console.log(deviceDoc);
   devices.set(deviceDoc.id, deviceDoc.data());
   updateDeviceSelector();
 }
 
 // Called when a device has been deleted.
 function removeDevice(deviceDoc) {
-  console.log('MDW: removeDevice called with:')
-  console.log(deviceDoc);
   devices.delete(deviceDoc.id);
   updateDeviceSelector();
 }
@@ -496,7 +491,7 @@ function updateDeviceSelector() {
 // Show the static Escher logo on the login canvas.
 function showLoginPreview() {
   $.get('/escher-logo.gcode', data => {
-    previewGcode(data, $("#loginCanvas").get(0), 80, 230, 0.9, true);
+    previewGcode(data, $("#loginCanvas").get(0), 0, 0, 1.0, true);
   });
 }
 
@@ -546,8 +541,6 @@ function deviceSelectChanged(value) {
 function findDevice(accessCode) {
   db.collection("escher").doc("root").collection('secret').doc(accessCode).collection('devices').get()
     .then((result) => {
-      console.log("MDW: result.docs is");
-      console.log(result.docs);
       if (result.docs == null || result.docs.empty) {
         showMessage("Bad access code.");
         return;
@@ -589,7 +582,6 @@ function selectDevice(mac, device) {
   }
   curDeviceID = mac;
   curDevice = device;
-  console.log("curDevice is now " + curDevice);
 }
 
 // Update UI state associated with the state of the currently-selected device.
@@ -615,6 +607,13 @@ function updateEtchState() {
   if (ts != null) {
     var m = moment.unix(ts.seconds);
     ds = m.fromNow();
+    if ((Date.now()/1000) - ts.seconds < 60*60) {
+      $('#currentDeviceWarning').addClass('hidden');
+    } else {
+      $('#currentDeviceWarning').removeClass('hidden');
+    }
+  } else {
+    $('#currentDeviceWarning').removeClass('hidden');
   }
   $("#currentDeviceState").text(deviceState + ", last seen " + ds);
 
@@ -637,30 +636,6 @@ function etchButtonClicked() {
 
 // The URL of the current command file to be etched.
 var curEscherFileURL = null;
-
-function uploadCommandFile(points, device) {
-  var controlMsg = 'START\n';
-  points.forEach(function (p) {
-    controlMsg += 'MOVE ' + Math.floor(p.x) + ' ' + Math.floor(p.y) + '\n';
-  });
-  controlMsg += 'END\n';
-
-  // Upload the control file to Firebase Storage and get its URL.
-  var fname = curGcodeFname + "_" + new Date().getTime() + ".escher";
-  console.log('Starting upload of ' + fname);
-  var storageRef = firebase.storage().ref();
-  var uploadRef = storageRef.child("escher/cmdfiles/" + fname);
-  return uploadRef.putString(controlMsg).then(function (snapshot) {
-    // Upload done.
-    console.log('Upload complete');
-    uploadRef.getDownloadURL().then(function (url) {
-      curEscherFileURL = null;
-      return new Promise(resolve => {
-        console.log("MDW: Promise resolve called");
-      });
-    });
-  });
-}
 
 // Called when etch control start button is clicked.
 function etchControlStartClicked() {
@@ -739,39 +714,14 @@ function controlZoomOutClicked() {
   showGcode();
 }
 function controlHomeClicked() {
-  // Figure out optimal settings so the image fits.
-  var bbox = VIRTUAL_ETCH_A_SKETCH_BBOX.height;
-  var waypoints = parseGcode(curGcodeData);
-  var minx = Math.min(...waypoints.map(wp => wp.x));
-  var maxx = Math.max(...waypoints.map(wp => wp.x));
-  var miny = Math.min(...waypoints.map(wp => wp.y));
-  var maxy = Math.max(...waypoints.map(wp => wp.y));
-  console.log("MDW: minx " + minx + " miny " + miny + " maxx " + maxx + " maxy " + maxy);
-
-  // XXX MDW - THIS IS BUGGY.
-  var dx = maxx - minx;
-  var dy = maxy - miny;
-  x_y_ratio = bbox.width/bbox.height;
-  // Scale longest axis (in proportion to bbox size) to fit.
-  var scale;
-  if ((dx/x_y_ratio) > dy) {
-    // Image is wider than it is tall.
-    zoom = bbox.width / dx;
-    offset_left = -1.0 * minx;
-    offset_bottom = -1.0 * miny + ((bbox.height - (dy * zoom)) / 2.0);
-  } else {
-    // Image is taller than it is wide.
-    zoom = bbox.height / dy;
-    offset_left = -1.0 * minx + ((bbox.width - (dy * zoom)) / 2.0);
-    offset_bottom = -1.0 * miny;
-  }
+  offset_left = 0;
+  offset_bottom = 0;
+  zoom = 1.0;
   showGcode();
 }
 
 function showGcode() {
-  console.log("MDW: offset_left " + offset_left + " offset_bottom " + offset_bottom + " zoom " + zoom);
-  previewGcode(curGcodeData, $("#etchCanvas").get(0),
-    offset_left, offset_bottom, zoom, true);
+  previewGcode(curGcodeData, $("#etchCanvas").get(0), offset_left, offset_bottom, zoom, true);
 }
 
 var uploadedGcode = null;
@@ -874,9 +824,8 @@ function render(points, bbox, offsetLeft, offsetBottom, zoomLevel) {
   points.forEach(function (elem) {
     var x = elem.x;
     var y = elem.y;
-
-    var tx = zoomLevel * (x + bbox.x + offsetLeft);
-    var ty = zoomLevel * (y + bbox.y + offsetBottom);
+    var tx = (zoomLevel * x) + (bbox.x + offsetLeft);
+    var ty = (zoomLevel * y) + (bbox.y + offsetBottom);
 
     if (tx < bbox.x) {
       tx = bbox.x;
@@ -891,6 +840,7 @@ function render(points, bbox, offsetLeft, offsetBottom, zoomLevel) {
       ty = bbox.y + bbox.height;
     }
     var pt = { x: tx, y: ty };
+    // Eliminate duplicates.
     if (pt.x != last.x || pt.y != last.y) {
       ret.push({ x: tx, y: ty });
       last = pt;
@@ -900,17 +850,49 @@ function render(points, bbox, offsetLeft, offsetBottom, zoomLevel) {
 }
 
 // Draw the given points on the canvas with a given linewidth.
-function etch(points, canvas, bbox, lineWidth, offsetLeft, offsetBottom,
-  zoomLevel) {
+function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoomLevel) {
   var ctx = canvas.getContext("2d");
 
-  // Debugging - draw bounding box.
+  // Debugging - draw bounding box on canvas.
   //ctx.strokeStyle = 'blue';
   //ctx.lineWidth = 5;
   //ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
 
-  var rendered = render(points, bbox, offsetLeft, offsetBottom, zoomLevel);
+  // Translate the gCode object so it exactly fits into the given bbox.
+  var minx = Math.min(...waypoints.map(wp => wp.x));
+  var maxx = Math.max(...waypoints.map(wp => wp.x));
+  var miny = Math.min(...waypoints.map(wp => wp.y));
+  var maxy = Math.max(...waypoints.map(wp => wp.y));
 
+  // Translate gCode object to lower left corner.
+  waypoints.forEach(function(pt) {
+    pt.x = pt.x - minx;
+    pt.y = pt.y - miny;
+  });
+
+  // Calculate scaling factor and offsets.
+  var dx = maxx - minx;
+  var dy = maxy - miny;
+  var scale;
+  var offset_x;
+  var offset_y;
+  bbox_ratio = bbox.width/bbox.height;
+  if ((dx/bbox_ratio) > dy) {
+    scale = bbox.width / dx;
+    offset_x = 0.0;
+    offset_y = (bbox.height - (scale * dy)) / 2.0;
+  } else {
+    scale = bbox.height / dy;
+    offset_x = (bbox.width - (scale * dx)) / 2.0;
+    offset_y = 0.0;
+  }
+
+  // Debugging - draw bounding box on canvas.
+  //ctx.strokeStyle = 'green';
+  //ctx.lineWidth = 5;
+  //ctx.strokeRect(bbox.x + offset_x, bbox.y + offset_y, dx * scale, dy * scale);
+
+  var rendered = render(waypoints, bbox, offsetLeft + offset_x, offsetBottom + offset_y, zoomLevel * scale);
   ctx.beginPath();
   ctx.strokeStyle = 'black';
   ctx.lineWidth = lineWidth;
