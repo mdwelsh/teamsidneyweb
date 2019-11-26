@@ -26,19 +26,10 @@ var backgroundImage;
 
 // Bounding box for screen of virtual Etch-a-Sketch.
 const VIRTUAL_ETCH_A_SKETCH_BBOX = {
-  x: 210,
-  y: 210,
-  width: 900,
-  height: 620,
-};
-
-// Bounding box for physical Etch-a-Sketch.
-// TODO(mdw): Provide an interface to configure this.
-const PHYSICAL_ETCH_A_SKETCH_BBOX = {
-  x: 0,
-  y: 0,
+  x: 168,
+  y: 168,
   width: 720,
-  height: 400,
+  height: 500,
 };
 
 window.onload = function () {
@@ -401,8 +392,8 @@ function addGcodeCard(gcode, index) {
     .addClass('gcode-preview')
     .appendTo(cardtitle);
   var previewCanvas = $('<canvas/>')
-    .attr('width', 1326)
-    .attr('height', 1081)
+    .attr('width', 1060)
+    .attr('height', 864)
     .addClass('responsive')
     .appendTo(previewArea);
 
@@ -858,7 +849,12 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
   //ctx.lineWidth = 5;
   //ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
 
-  // Translate the gCode object so it exactly fits into the given bbox.
+  // Goal: Scale the gCode object so that it is centered
+  // within the given bounding box, with its longest
+  // dimension exactly filling the bounding box. The user-provided
+  // offsetLeft, offsetBottom, and zoomLevel are then applied to that.
+
+  // First, get bounding dimensions of the waypoints.
   var minx = Math.min(...waypoints.map(wp => wp.x));
   var maxx = Math.max(...waypoints.map(wp => wp.x));
   var miny = Math.min(...waypoints.map(wp => wp.y));
@@ -871,17 +867,20 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
   });
 
   // Calculate scaling factor and offsets.
+  var bbox_ratio = bbox.width/bbox.height;
   var dx = maxx - minx;
   var dy = maxy - miny;
   var scale;
   var offset_x;
   var offset_y;
-  bbox_ratio = bbox.width/bbox.height;
+
   if ((dx/bbox_ratio) > dy) {
+    // The object is wider than it is tall.
     scale = bbox.width / dx;
     offset_x = 0.0;
     offset_y = (bbox.height - (scale * dy)) / 2.0;
   } else {
+    // The object is taller than it is wide.
     scale = bbox.height / dy;
     offset_x = (bbox.width - (scale * dx)) / 2.0;
     offset_y = 0.0;
@@ -892,6 +891,7 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
   //ctx.lineWidth = 5;
   //ctx.strokeRect(bbox.x + offset_x, bbox.y + offset_y, dx * scale, dy * scale);
 
+  // Now render with these offsets and scaling.
   var rendered = render(waypoints, bbox, offsetLeft + offset_x, offsetBottom + offset_y, zoomLevel * scale);
   ctx.beginPath();
   ctx.strokeStyle = 'black';
