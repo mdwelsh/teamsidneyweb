@@ -32,6 +32,13 @@ body {
   margin-right: 20px;
 }
 
+.boldText {
+  font-family: 'Roboto Slab', serif;
+  font-weight: bold;
+  font-size: 18px;
+  color: rgb(244,67,54);
+}
+
 .title {
   font-family: 'Roboto Slab', serif;
   font-weight: bold;
@@ -49,6 +56,10 @@ body {
   bottom: 48px;
   right: 24px;
 /*  height: 100px; */
+}
+
+.errorText {
+  color: red;
 }
 
 .errormsg {
@@ -81,6 +92,12 @@ body {
 #etchCanvas {
 }
 
+#currentDeviceInfo {
+  font-size: 14px;
+  color: #303030;
+  padding-bottom: 5px;
+}
+
 .responsive {
   width: 100%;
   height: auto;
@@ -99,6 +116,9 @@ body {
   margin-top: 20px;
 }
 
+#drawButtons {
+  margin-top: 20px;
+}
 
 /* Upload Gcode dialog */
 #uploadGcode {
@@ -147,6 +167,10 @@ body {
 }
 
 
+#loginTab {
+  font-size: 18px;
+}
+
 #aboutDescription {
   font-size: 18px;
 }
@@ -167,43 +191,21 @@ body {
   width: 100%;
 }
 
+.gcode-card > .mdl-card__actions {
+  display: flex;
+  box-sizing:border-box;
+  align-items: center;
+}
+
 .gcode-title-line {
-  display: grid;
-  grid-template-columns: 100px 1fr 100px;
-  width: 100%;
+  font-size: 16px;
 }
 
-.gcode-body {
-  display: grid;
-  grid-template-columns: [status] 1fr 1fr [preview] 1fr;
-  width: 95%;
-}
-
-.gcode-status {
-  grid-column-start: status;
-  display: grid;
-  grid-template-columns: 30% 70%;
-  grid-row-gap: 5px;
-}
-
-.gcode-preview {
-  grid-column-start: preview;
-}
-
-.gcode-card-buttons {
-  margin: 20px;
-  display: grid;
-  grid-template-columns: [delete] 80px;
+/*
+.gcode-card.mdl-card {
   width: 90%;
-}
-
-.gcode-card-buttons > button {
-  justify-self: left;
-}
-
-#gcodeDeleteButton {
-  grid-column-start: delete
-}
+)
+*/
 
 /* Firmware list UI */
 #firmwarelist {
