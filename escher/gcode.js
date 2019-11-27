@@ -1,28 +1,11 @@
 // Simple GCode parser.
 
-// Width and height of Etch-a-Sketch in step units.
-// You can determine this experimentally (and it depends
-// on things like gearing, which steppers are being used,
-// etc.)
-//
-// For larger knobs:
-//const WIDTH_STEPS = 900;
-//const HEIGHT_STEPS = 700;
-
-// For smaller knobs:
-//const WIDTH_STEPS = 720;
-//const HEIGHT_STEPS = 500;
-//
-// Virtual screen:
-const WIDTH_STEPS = 900;
-const HEIGHT_STEPS = 620;
-
 function atan3(dy, dx) {
- var a = Math.atan2(dy, dx);
- if (a < 0) {
-   a = (Math.PI * 2.0) + a;
- }
- return a;
+  var a = Math.atan2(dy, dx);
+  if (a < 0) {
+    a = (Math.PI * 2.0) + a;
+  }
+  return a;
 }
 
 // Precision of arcs in centimeters per segment.
@@ -34,7 +17,7 @@ function doArc(posx, posy, x, y, cx, cy, cw) {
   var retval = [];
   var dx = posx - cx;
   var dy = posy - cy;
-  var radius = Math.sqrt((dx*dx)+(dy*dy));
+  var radius = Math.sqrt((dx * dx) + (dy * dy));
 
   // find the sweep of the arc
   var angle1 = atan3(posy - cy, posx - cx);
@@ -63,26 +46,27 @@ function doArc(posx, posy, x, y, cx, cy, cw) {
     var ny = cy + Math.sin(angle3) * radius;
 
     // make a line to that intermediate position
-    retval.push({x: nx, y: ny});
+    retval.push({ x: nx, y: ny });
   }
 
   // one last line hit the end
-  retval.push({x: x, y: y});
+  retval.push({ x: x, y: y });
   return retval;
 }
 
+// Parse the given gCode document, returning a list of (x, y) waypoints.
 function parseGcode(data) {
   var waypoints = [];
   var lines = data.split(/\r?\n/);
-  var lastpoint = {x: null, y: null};
+  var lastpoint = { x: null, y: null };
 
-  lines.forEach(function(line) {
+  lines.forEach(function (line) {
     var re = /^(G0[01]) X([\d\.]+) Y([\d\.]+)/;
     var m = re.exec(line);
     if (m != null) {
       var x = parseFloat(m[2]);
       var y = parseFloat(m[3]);
-      var pt = {x: x, y: y};
+      var pt = { x: x, y: y };
       if (pt.x != lastpoint.x || pt.y != lastpoint.y) {
         waypoints.push(pt);
         lastpoint = pt;
@@ -97,7 +81,7 @@ function parseGcode(data) {
         console.log(line);
         return;
       }
-      var last = waypoints[waypoints.length-1];
+      var last = waypoints[waypoints.length - 1];
       var x = parseFloat(m[2]);
       var y = parseFloat(m[3]);
       var i = parseFloat(m[5]);
@@ -110,8 +94,8 @@ function parseGcode(data) {
         cw = true;
       }
 
-      curve = doArc(last.x, last.y, x, y, last.x+i, last.y+j, cw);
-      curve.forEach(function(pt) {
+      curve = doArc(last.x, last.y, x, y, last.x + i, last.y + j, cw);
+      curve.forEach(function (pt) {
         if (pt.x != lastpoint.x || pt.y != lastpoint.y) {
           waypoints.push(pt);
           lastpoint = pt;
@@ -122,44 +106,45 @@ function parseGcode(data) {
 
   // Remove final (0, 0) added by Inkscape Gcode plugin.
   if (waypoints.length > 0 &&
-      waypoints[waypoints.length-1].x == 0 &&
-      waypoints[waypoints.length-1].y == 0) {
+    waypoints[waypoints.length - 1].x == 0 &&
+    waypoints[waypoints.length - 1].y == 0) {
     waypoints.pop();
   }
 
   return waypoints;
 }
 
+// Scale the given list of (x, y) points to fit within the given bounding box.
 function scaleToBbox(pts, bbox) {
   // Find min and max ranges.
-  var minx = pts.reduce(function(prev, curr) {
+  var minx = pts.reduce(function (prev, curr) {
     return prev.x < curr.x ? prev : curr;
   });
-  var maxx = pts.reduce(function(prev, curr) {
+  var maxx = pts.reduce(function (prev, curr) {
     return prev.x > curr.x ? prev : curr;
   });
-  var miny = pts.reduce(function(prev, curr) {
+  var miny = pts.reduce(function (prev, curr) {
     return prev.y < curr.y ? prev : curr;
   });
-  var maxy = pts.reduce(function(prev, curr) {
+  var maxy = pts.reduce(function (prev, curr) {
     return prev.y > curr.y ? prev : curr;
   });
   var dx = maxx.x - minx.x;
   var dy = maxy.y - miny.y;
-  x_y_ratio = bbox.width/bbox.height;
+  x_y_ratio = bbox.width / bbox.height;
   // Scale longest axis (in proportion to bbox size) to fit.
   var scale;
-  if ((dx/x_y_ratio) > dy) {
+  if ((dx / x_y_ratio) > dy) {
     scale = bbox.width / dx;
   } else {
     scale = bbox.height / dy;
   }
 
   var ret = [];
-  pts.forEach(function(pt) {
+  pts.forEach(function (pt) {
     var tx = (pt.x - minx.x) * scale;
     var ty = (pt.y - miny.y) * scale;
-    ret.push({x: tx, y: ty});
+    ret.push({ x: tx, y: ty });
   });
 
   return ret;

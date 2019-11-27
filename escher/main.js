@@ -1,7 +1,24 @@
 /* Escher main JS code */
 
+// Firebase handles.
 var provider = new firebase.auth.GoogleAuthProvider();
 var db = firebase.firestore();
+
+// The currently-selected device.
+var curDevice = null;
+var curDeviceID = null;
+var curDeviceListener = null;
+var curAccessCode = null;
+
+// The currently selected Gcode data object.
+var curGcodeData = null;
+var curGcodeFname = null;
+var curGcodeUrl = null;
+
+// Global values for user-selected offsets and zoom level.
+var offset_left = 0;
+var offset_bottom = 0;
+var zoom = 1.0;
 
 // Show/hide appropriate section of UI based on login state.
 firebase.auth().onAuthStateChanged(firebaseUser => {
@@ -326,6 +343,7 @@ function accessCodeChanged(code) {
 
 function loginButtonClicked() {
   var code = $('#accessCode').val();
+  curAccessCode = code;
   findDevice(code);
 }
 
@@ -411,7 +429,6 @@ function addGcodeCard(gcode, index) {
     .text(gcode.filename)
     .appendTo(tl);
 
-
   // Card actions.
   $('<a/>')
     .addClass('mdl-button')
@@ -486,11 +503,6 @@ function showLoginPreview() {
   });
 }
 
-// The currently selected Gcode data object.
-var curGcodeData = null;
-// The currently selected Gcode filename.
-var curGcodeFname = null;
-
 function selectGcode(fname) {
   curGcodeData = null;
 
@@ -500,12 +512,16 @@ function selectGcode(fname) {
 
   var gcodeDoc = gcodeFiles.get(fname);
   if (gcodeDoc == null) {
+    // Somehow user managed to select a gCode doc that we haven't heard of.
+    console.log("Internal error - unable to find gCode doc for filename " + fname);
     return;
   }
 
+  // Download the gcode data.
   $.get(gcodeDoc.url, data => {
     curGcodeData = data;
     curGcodeFname = fname;
+    curGcodeUrl = gcodeDoc.url;
     showGcode();
     updateEtchState();
   }).fail(err => {
@@ -514,11 +530,6 @@ function selectGcode(fname) {
     updateEtchState();
   });
 }
-
-// The currently selected device.
-var curDevice = null;
-var curDeviceID = null;
-var curDeviceListener = null;
 
 // Callback when device selector changes value.
 function deviceSelectChanged(value) {
@@ -536,8 +547,8 @@ function findDevice(accessCode) {
         showMessage("Bad access code.");
         return;
       }
-      // If more than one device is using the same access code, we arbitrarily use the
-      // one with the newest checkin time.
+      // If more than one device is using the same access code, we arbitrarily
+      // use the one with the newest checkin time.
       var chosenDoc = null;
       result.docs.forEach((d) => {
         if (chosenDoc == null || d.data().updateTime > newest) {
@@ -564,7 +575,7 @@ function findDevice(accessCode) {
 }
 
 // Select the given device by MAC.
-function selectDevice(mac, device) {
+function selectDevice(mac, device, accessCode) {
   console.log("Selecting device: " + mac);
   // Unsubscribe to state changes on old device.
   if (curDeviceListener != null) {
@@ -598,7 +609,7 @@ function updateEtchState() {
   if (ts != null) {
     var m = moment.unix(ts.seconds);
     ds = m.fromNow();
-    if ((Date.now()/1000) - ts.seconds < 60*60) {
+    if ((Date.now() / 1000) - ts.seconds < 60 * 60) {
       $('#currentDeviceWarning').addClass('hidden');
     } else {
       $('#currentDeviceWarning').removeClass('hidden');
@@ -625,24 +636,18 @@ function etchButtonClicked() {
   $("#etchControl").get(0).showModal();
 }
 
-// The URL of the current command file to be etched.
-var curEscherFileURL = null;
-
 // Called when etch control start button is clicked.
 function etchControlStartClicked() {
   if (curDevice == null) {
     showError('No device selected');
     return;
   }
-  if (curEscherFileURL == null) {
-    showError('No Gcode ready for etching');
+  if (curGcodeUrl == null) {
+    showError('No Gcode selected.');
     return;
   }
 
-  // TODO(mdw): Push control message to device to start etching.
-  $("#etchControl").get()[0].close();
-  showMessage('Etching started!');
-  updateEtchState();
+  startEtching();
 }
 
 // Called when stop button is clicked.
@@ -652,10 +657,59 @@ function stopButtonClicked() {
     return;
   }
 
-  // TODO(mdw): Push control message to stop etching.
+  stopEtching();
+}
 
-  showMessage('Etching stopped!');
-  updateEtchState();
+// Send etch command to Firebase.
+function startEtching() {
+  db.collection("escher")
+    .doc("root")
+    .collection("secret")
+    .doc(curAccessCode)
+    .collection("devices")
+    .doc(curDevice.mac)
+    .collection("commands")
+    .doc("etch")
+  .update({
+    created: firebase.firestore.FieldValue.serverTimestamp(),
+    url: curGcodeUrl,
+    offsetLeft: offset_left,
+    offsetBottom: offset_bottom,
+    zoom: zoom,
+  }).then(function (docRef) {
+    // Close the dialog.
+    $("#etchControl").get()[0].close();
+    showMessage('Etching will begin shortly.');
+    updateEtchState();
+  }).catch(function (error) {
+    // Close the dialog.
+    $("#etchControl").get()[0].close();
+    showError('Error sending etch command: ' + error.message);
+    updateEtchState();
+  });
+}
+
+// Send stop etch command to Firebase.
+function stopEtching() {
+  db.collection("escher")
+    .doc("root")
+    .collection("secret")
+    .doc(curAccessCode)
+    .collection("devices")
+    .doc(curDevice.mac)
+    .collection("commands")
+    .doc("etch")
+  .update({
+    created: firebase.firestore.FieldValue.serverTimestamp(),
+    // This is how we indicate that the device should stop.
+    url: "",
+  }).then(function (docRef) {
+    showMessage('Etching will stop shortly.');
+    updateEtchState();
+  }).catch(function (error) {
+    showError('Error sending stop etch command: ' + error.message);
+    updateEtchState();
+  });
 }
 
 // Show the given GCode on the canvas.
@@ -673,11 +727,6 @@ function previewGcode(gcodeData, canvas, offsetLeft, offsetBottom, zoomLevel,
   etch(waypoints, canvas, VIRTUAL_ETCH_A_SKETCH_BBOX, 1, offsetLeft,
     offsetBottom, zoomLevel);
 }
-
-// Code for control buttons.
-var offset_left = 0;
-var offset_bottom = 0;
-var zoom = 1.0;
 
 // Called when control buttons are clicked.
 function controlLeftClicked() {
@@ -861,20 +910,20 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
   var maxy = Math.max(...waypoints.map(wp => wp.y));
 
   // Translate gCode object to lower left corner.
-  waypoints.forEach(function(pt) {
+  waypoints.forEach(function (pt) {
     pt.x = pt.x - minx;
     pt.y = pt.y - miny;
   });
 
   // Calculate scaling factor and offsets.
-  var bbox_ratio = bbox.width/bbox.height;
+  var bbox_ratio = bbox.width / bbox.height;
   var dx = maxx - minx;
   var dy = maxy - miny;
   var scale;
   var offset_x;
   var offset_y;
 
-  if ((dx/bbox_ratio) > dy) {
+  if ((dx / bbox_ratio) > dy) {
     // The object is wider than it is tall.
     scale = bbox.width / dx;
     offset_x = 0.0;
