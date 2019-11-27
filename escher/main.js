@@ -1030,9 +1030,9 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
   var ctx = canvas.getContext("2d");
 
   // Debugging - draw bounding box on canvas.
-  ctx.strokeStyle = 'blue';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
+  //ctx.strokeStyle = 'blue';
+  //ctx.lineWidth = 3;
+  //ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
 
   if (scaleToFit) {
 
