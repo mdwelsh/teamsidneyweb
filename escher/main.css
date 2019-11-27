@@ -116,6 +116,9 @@ body {
   margin-top: 20px;
 }
 
+#drawButtons {
+  margin-top: 20px;
+}
 
 /* Upload Gcode dialog */
 #uploadGcode {

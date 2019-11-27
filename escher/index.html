@@ -132,8 +132,9 @@
                   Device <span id="currentDevice"></span>
                 </div>
                 <div>
-                 <span id="currentDeviceState"></span>
-                 <span id="currentDeviceWarning" class="hidden"><i class="material-icons" style="color: rgb(240, 100, 64)">cloud_off</i></span>
+                  <span id="currentDeviceState"></span>
+                  <span id="currentDeviceWarning" class="hidden"><i class="material-icons"
+                      style="color: rgb(240, 100, 64)">cloud_off</i></span>
                 </div>
               </div>
               <!-- Device selector is only visible in admin mode. -->
@@ -167,6 +168,13 @@
                     class="material-icons">zoom_out</i></button>
                 <button id="controlHome" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i
                     class="material-icons">home</i></button>
+              </div>
+
+              <div role="group" id="drawButtons" class="hidden">
+                <button id="drawUndo" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i
+                    class="material-icons">undo</i></button>
+                <button id="drawClear" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab"><i
+                    class="material-icons">clear</i></button>
               </div>
 
               <div id="userDebug"></div>
@@ -251,13 +259,15 @@
     <!-- Etch control body -->
     <div class="mdl-dialog__content" id="etchControlBody">
       <div class="etchControlMessage" id="etchConfirmMessage">
-        Erase the Etch-a-Sketch, set pointer to lower left corner, and click the <span class="boldText">Start</span> button below.
+        Erase the Etch-a-Sketch, set pointer to lower left corner, and click the <span class="boldText">Start</span>
+        button below.
       </div>
     </div>
     <div class="mdl-dialog__actions">
       <div role="group">
         <button id="etchControlCancel" type="button" class="mdl-button">Cancel</button>
-        <button id="etchControlStart" type="button" class="mdl-button mdl-button--raised mdl-button--colored">Start</button>
+        <button id="etchControlStart" type="button"
+          class="mdl-button mdl-button--raised mdl-button--colored">Start</button>
       </div>
     </div>
   </dialog>

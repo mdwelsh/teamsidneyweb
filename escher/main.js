@@ -14,6 +14,8 @@ var curAccessCode = null;
 var curGcodeData = null;
 var curGcodeFname = null;
 var curGcodeUrl = null;
+var drawingMode = false;
+var drawing = false;
 
 // Global values for user-selected offsets and zoom level.
 var offset_left = 0;
@@ -278,6 +280,17 @@ function setup() {
     controlHomeClicked();
   });
 
+  // Draw buttons.
+  $('#drawUndo').off('click');
+  $('#drawUndo').click(function (e) {
+    drawUndoClicked();
+  });
+  $('#drawClear').off('click');
+  $('#drawClear').click(function (e) {
+    curGcodeData = null;
+    showGcode();
+  });
+
   // Action bttons.
   $('#loginButton').off('click');
   $('#loginButton').click(function (e) {
@@ -290,6 +303,20 @@ function setup() {
   $('#stopButton').off('click');
   $('#stopButton').click(function (e) {
     stopButtonClicked();
+  });
+
+  // Allow etch canvas to get mouse events, for live drawing.
+  $("#etchCanvas").mousedown(function (e) {
+    etchCanvasMouseDown(e);
+  });
+  $("#etchCanvas").mousemove(function (e) {
+    etchCanvasMouseMove(e);
+  });
+  $("#etchCanvas").mouseup(function (e) {
+    drawing = false;
+  });
+  $("#etchCanvas").mouseleave(function (e) {
+    drawing = false;
   });
 
   // Load Etch-A-Sketch background image.
@@ -417,7 +444,7 @@ function addGcodeCard(gcode, index) {
 
   // Do the preview.
   $.get(gcode.url, data => {
-    previewGcode(data, previewCanvas.get(0), 0, 0, 1.0, true);
+    previewGcode(data, previewCanvas.get(0), 0, 0, 1.0, true, 0);
   });
 
   // Card body (supporting text).
@@ -450,6 +477,9 @@ function updateGcodeSelector() {
   select.empty();
   $('<option/>')
     .text('')
+    .appendTo(select);
+  $('<option/>')
+    .text('-- Draw your own image --')
     .appendTo(select);
   for (var fname of gcodeFiles.keys()) {
     $('<option/>')
@@ -499,21 +529,32 @@ function updateDeviceSelector() {
 // Show the static Escher logo on the login canvas.
 function showLoginPreview() {
   $.get('/escher-logo.gcode', data => {
-    previewGcode(data, $("#loginCanvas").get(0), 0, 0, 1.0, true);
+    previewGcode(data, $("#loginCanvas").get(0), 0, 0, 1.0, true, 1);
   });
 }
 
 function selectGcode(fname) {
   curGcodeData = null;
+  curGcodeFname = null;
+  curGcodeUrl = null;
+  drawingMode = false;
+  drawing = false;
 
   offset_left = 0;
   offset_bottom = 0;
   zoom = 1.0;
 
+  if (fname == "-- Draw your own image --") {
+    $('#drawButtons').removeClass('hidden');
+    drawingMode = true;
+    showGcode();
+    return;
+  }
+
+  $('#drawButtons').addClass('hidden');
   var gcodeDoc = gcodeFiles.get(fname);
   if (gcodeDoc == null) {
-    // Somehow user managed to select a gCode doc that we haven't heard of.
-    console.log("Internal error - unable to find gCode doc for filename " + fname);
+    // User has cleared gcode.
     return;
   }
 
@@ -670,23 +711,23 @@ function startEtching() {
     .doc(curDevice.mac)
     .collection("commands")
     .doc("etch")
-  .update({
-    created: firebase.firestore.FieldValue.serverTimestamp(),
-    url: curGcodeUrl,
-    offsetLeft: offset_left,
-    offsetBottom: offset_bottom,
-    zoom: zoom,
-  }).then(function (docRef) {
-    // Close the dialog.
-    $("#etchControl").get()[0].close();
-    showMessage('Etching will begin shortly.');
-    updateEtchState();
-  }).catch(function (error) {
-    // Close the dialog.
-    $("#etchControl").get()[0].close();
-    showError('Error sending etch command: ' + error.message);
-    updateEtchState();
-  });
+    .update({
+      created: firebase.firestore.FieldValue.serverTimestamp(),
+      url: curGcodeUrl,
+      offsetLeft: offset_left,
+      offsetBottom: offset_bottom,
+      zoom: zoom,
+    }).then(function (docRef) {
+      // Close the dialog.
+      $("#etchControl").get()[0].close();
+      showMessage('Etching will begin shortly.');
+      updateEtchState();
+    }).catch(function (error) {
+      // Close the dialog.
+      $("#etchControl").get()[0].close();
+      showError('Error sending etch command: ' + error.message);
+      updateEtchState();
+    });
 }
 
 // Send stop etch command to Firebase.
@@ -699,33 +740,33 @@ function stopEtching() {
     .doc(curDevice.mac)
     .collection("commands")
     .doc("etch")
-  .update({
-    created: firebase.firestore.FieldValue.serverTimestamp(),
-    // This is how we indicate that the device should stop.
-    url: "",
-  }).then(function (docRef) {
-    showMessage('Etching will stop shortly.');
-    updateEtchState();
-  }).catch(function (error) {
-    showError('Error sending stop etch command: ' + error.message);
-    updateEtchState();
-  });
+    .update({
+      created: firebase.firestore.FieldValue.serverTimestamp(),
+      // This is how we indicate that the device should stop.
+      url: "",
+    }).then(function (docRef) {
+      showMessage('Etching will stop shortly.');
+      updateEtchState();
+    }).catch(function (error) {
+      showError('Error sending stop etch command: ' + error.message);
+      updateEtchState();
+    });
 }
 
 // Show the given GCode on the canvas.
 function previewGcode(gcodeData, canvas, offsetLeft, offsetBottom, zoomLevel,
-  showFrame) {
-  var waypoints = parseGcode(gcodeData);
-  if (waypoints.length == 0) {
-    console.log('Error: Cannot parse Gcode');
-    showError('Error: Cannot parse Gcode');
-    return;
+  showFrame, delayMs) {
+  if (gcodeData == null) {
+    gcodeData = '';
   }
+  var waypoints = parseGcode(gcodeData);
   if (showFrame) {
     showEtchASketch(canvas, true);
   }
+  // In drawing mode, we do not automatically scale to fit.
+  var scaleToFit = (!drawingMode);
   etch(waypoints, canvas, VIRTUAL_ETCH_A_SKETCH_BBOX, 1, offsetLeft,
-    offsetBottom, zoomLevel);
+    offsetBottom, zoomLevel, scaleToFit, delayMs);
 }
 
 // Called when control buttons are clicked.
@@ -761,7 +802,101 @@ function controlHomeClicked() {
 }
 
 function showGcode() {
-  previewGcode(curGcodeData, $("#etchCanvas").get(0), offset_left, offset_bottom, zoom, true);
+  previewGcode(curGcodeData, $("#etchCanvas").get(0), offset_left, offset_bottom, zoom, true, 0);
+}
+
+// Called by mousedown / mousemove events on the canvas.
+function etchCanvasDraw(e) {
+  // Get relative position of mouse click within canvas.
+  var canvasScreenWidth = $("#etchCanvas")[0].clientWidth;
+  var canvasScreenHeight = $("#etchCanvas")[0].clientHeight;
+  var mouseX = (e.offsetX * 1.0) / canvasScreenWidth;
+  var mouseY = 1.0 - ((e.offsetY * 1.0) / canvasScreenHeight);
+
+  var canvasWidth = $("#etchCanvas")[0].width;
+  var canvasHeight = $("#etchCanvas")[0].height;
+  var etchBoxLeft = (VIRTUAL_ETCH_A_SKETCH_BBOX.x * 1.0) / canvasWidth;
+  var etchBoxBottom = 1.0 - (((VIRTUAL_ETCH_A_SKETCH_BBOX.y + VIRTUAL_ETCH_A_SKETCH_BBOX.height) * 1.0) / canvasHeight);
+  var etchBoxRight = ((VIRTUAL_ETCH_A_SKETCH_BBOX.x + VIRTUAL_ETCH_A_SKETCH_BBOX.width) * 1.0) / canvasWidth;
+  var etchBoxTop = 1.0 - ((VIRTUAL_ETCH_A_SKETCH_BBOX.y * 1.0) / canvasHeight);
+
+  // Now decide if it is contained within the Etch-a-Sketch screen.
+  if ((mouseX < etchBoxLeft) || (mouseX > etchBoxRight) || (mouseY < etchBoxBottom) || (mouseY > etchBoxTop)) {
+    // Left drawing area.
+    drawing = false;
+    return;
+  }
+
+  // Relative area of the etchable portion of the canvas.
+  var etchBoxWidth = etchBoxRight - etchBoxLeft;
+  var etchBoxHeight = etchBoxTop - etchBoxBottom;
+  // Scale click to relative position within the etchable area.
+  var etchClickX = (mouseX - etchBoxLeft) / etchBoxWidth;
+  var etchClickY = (mouseY - etchBoxBottom) / etchBoxHeight;
+  addGcodeWaypoint(etchClickX, etchClickY);
+  showGcode();
+}
+
+// Called when mouse is clicked within the etch canvas.
+function etchCanvasMouseDown(e) {
+  if (!drawingMode) {
+    return;
+  }
+  addGcodeUndoPoint();
+  drawing = true;
+  etchCanvasDraw(e);
+}
+
+function etchCanvasMouseMove(e) {
+  if (!drawingMode || !drawing) {
+    return;
+  }
+  etchCanvasDraw(e);
+}
+
+var last_gcode_xval = null;
+var last_gcode_yval = null;
+
+function addGcodeWaypoint(etchX, etchY) {
+  var xval = Math.floor(etchX * VIRTUAL_ETCH_A_SKETCH_BBOX.width);
+  var yval = Math.floor(etchY * VIRTUAL_ETCH_A_SKETCH_BBOX.height);
+  // Avoid adding too many points.
+  if (xval == last_gcode_xval && yval == last_gcode_yval) {
+    return;
+  }
+  if (curGcodeData == null) {
+    curGcodeData = "";
+  }
+  curGcodeData += "G00 X" + xval + " Y" + yval + "\n";
+  last_gcode_xval = xval;
+  last_gcode_yval = yval;
+}
+
+function addGcodeUndoPoint() {
+  if (curGcodeData == null) {
+    curGcodeData = "";
+  }
+  curGcodeData += "% Undo point\n";
+}
+
+function drawUndoClicked() {
+  if (!drawingMode) {
+    return;
+  }
+  // Kind of a hack; remove the final line from the gcode object.
+  var lines = curGcodeData.split(/\r?\n/);
+
+  // Look backwards for last undo point.
+  var lastUndo = 0;
+  for (var i = lines.length-1; i >= 0; i--) {
+    if (lines[i].startsWith('%')) {
+      lastUndo = i;
+      break;
+    }
+  }
+  lines.splice(lastUndo, lines.length - lastUndo);
+  curGcodeData = lines.join("\n") + "\n";
+  showGcode();
 }
 
 var uploadedGcode = null;
@@ -803,7 +938,7 @@ function uploadGcodePreview(data) {
   var gcode = enc.decode(data);
 
   // Parse and preview Gcode.
-  previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true);
+  previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
   $('#uploadGcodeConfirm').prop('disabled', false);
 }
 
@@ -889,56 +1024,66 @@ function render(points, bbox, offsetLeft, offsetBottom, zoomLevel) {
   return ret;
 }
 
+
 // Draw the given points on the canvas with a given linewidth.
-function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoomLevel) {
+function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoomLevel, scaleToFit, delay) {
   var ctx = canvas.getContext("2d");
 
   // Debugging - draw bounding box on canvas.
-  //ctx.strokeStyle = 'blue';
-  //ctx.lineWidth = 5;
-  //ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
+  ctx.strokeStyle = 'blue';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
 
-  // Goal: Scale the gCode object so that it is centered
-  // within the given bounding box, with its longest
-  // dimension exactly filling the bounding box. The user-provided
-  // offsetLeft, offsetBottom, and zoomLevel are then applied to that.
+  if (scaleToFit) {
 
-  // First, get bounding dimensions of the waypoints.
-  var minx = Math.min(...waypoints.map(wp => wp.x));
-  var maxx = Math.max(...waypoints.map(wp => wp.x));
-  var miny = Math.min(...waypoints.map(wp => wp.y));
-  var maxy = Math.max(...waypoints.map(wp => wp.y));
+    // Goal: Scale the gCode object so that it is centered
+    // within the given bounding box, with its longest
+    // dimension exactly filling the bounding box. The user-provided
+    // offsetLeft, offsetBottom, and zoomLevel are then applied to that.
 
-  // Translate gCode object to lower left corner.
-  waypoints.forEach(function (pt) {
-    pt.x = pt.x - minx;
-    pt.y = pt.y - miny;
-  });
+    // First, get bounding dimensions of the waypoints.
+    var minx = Math.min(...waypoints.map(wp => wp.x));
+    var maxx = Math.max(...waypoints.map(wp => wp.x));
+    var miny = Math.min(...waypoints.map(wp => wp.y));
+    var maxy = Math.max(...waypoints.map(wp => wp.y));
 
-  // Calculate scaling factor and offsets.
-  var bbox_ratio = bbox.width / bbox.height;
-  var dx = maxx - minx;
-  var dy = maxy - miny;
-  var scale;
-  var offset_x;
-  var offset_y;
+    // Translate gCode object to lower left corner.
+    waypoints.forEach(function (pt) {
+      pt.x = pt.x - minx;
+      pt.y = pt.y - miny;
+    });
 
-  if ((dx / bbox_ratio) > dy) {
-    // The object is wider than it is tall.
-    scale = bbox.width / dx;
-    offset_x = 0.0;
-    offset_y = (bbox.height - (scale * dy)) / 2.0;
+    // Calculate scaling factor and offsets.
+    var bbox_ratio = bbox.width / bbox.height;
+    var dx = maxx - minx;
+    var dy = maxy - miny;
+    var scale;
+    var offset_x;
+    var offset_y;
+
+    if ((dx / bbox_ratio) > dy) {
+      // The object is wider than it is tall.
+      scale = bbox.width / dx;
+      offset_x = 0.0;
+      offset_y = (bbox.height - (scale * dy)) / 2.0;
+    } else {
+      // The object is taller than it is wide.
+      scale = bbox.height / dy;
+      offset_x = (bbox.width - (scale * dx)) / 2.0;
+      offset_y = 0.0;
+    }
+
+    // Debugging - draw bounding box on canvas.
+    //ctx.strokeStyle = 'green';
+    //ctx.lineWidth = 5;
+    //ctx.strokeRect(bbox.x + offset_x, bbox.y + offset_y, dx * scale, dy * scale);
+
   } else {
-    // The object is taller than it is wide.
-    scale = bbox.height / dy;
-    offset_x = (bbox.width - (scale * dx)) / 2.0;
+    // Not scaling to fit.
+    offset_x = 0.0;
     offset_y = 0.0;
+    scale = 1.0;
   }
-
-  // Debugging - draw bounding box on canvas.
-  //ctx.strokeStyle = 'green';
-  //ctx.lineWidth = 5;
-  //ctx.strokeRect(bbox.x + offset_x, bbox.y + offset_y, dx * scale, dy * scale);
 
   // Now render with these offsets and scaling.
   var rendered = render(waypoints, bbox, offsetLeft + offset_x, offsetBottom + offset_y, zoomLevel * scale);
@@ -948,13 +1093,33 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
   // Start at origin.
   ctx.moveTo(bbox.x, (bbox.y + bbox.height));
 
-  rendered.forEach(function (elem) {
+  var index = 0;
+  var etchInterval = null;
+  // Helper function to draw next point.
+  drawPoint = function(stroke) {
+    if (index == rendered.length) {
+      clearInterval(etchInterval);
+      etchInterval = null;
+      ctx.stroke();
+      return;
+    }
+    var elem = rendered[index];
     var x = elem.x;
     var y = elem.y;
-
     // Flip the y-axis.
     y = bbox.height - (y - bbox.y) + bbox.y;
     ctx.lineTo(x, y);
-  });
-  ctx.stroke();
+    if (stroke) {
+      ctx.stroke();
+    }
+    index++;
+  };
+
+  if (delay == 0) {
+    // Just draw all the points right now.
+    rendered.forEach(function(elem) { drawPoint(false); });
+    ctx.stroke();
+  } else {
+    etchInterval = setInterval(drawPoint, 0, true);
+  }
 }
