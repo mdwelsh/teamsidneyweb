@@ -926,6 +926,8 @@ function uploadGcodeStart() {
 // Called when Gcode file selector changes.
 function uploadGcodeFileSelected(file) {
   uploadedGcode = file;
+  var fileType = file['type'];
+
   $('#uploadGcodeConfirm').prop('disabled', true);
   $('#uploadGcodeSelectedFile').text('File: ' + file.name);
   $('#uploadGcodeError').empty();
@@ -934,21 +936,41 @@ function uploadGcodeFileSelected(file) {
   console.log('Reading: ' + file.name);
   var reader = new FileReader();
   reader.onloadend = function () {
-    uploadGcodePreview(reader.result);
+    uploadGcodePreview(reader.result, file);
   }
   reader.readAsArrayBuffer(file);
 }
 
 // Callback when file data has been read and preview needs to be shown.
-function uploadGcodePreview(data) {
-  console.log('Finished reading ' + uploadedGcode.name);
+function uploadGcodePreview(data, file) {
+  console.log('Finished reading ' + file.name);
+  var fileType = file['type'];
+  console.log('File type: ' + fileType);
 
-  var enc = new TextDecoder("utf-8");
-  var gcode = enc.decode(data);
+  if (fileType == "text/x.gcode") {
+    var enc = new TextDecoder("utf-8");
+    var gcode = enc.decode(data);
+    previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
+    $('#uploadGcodeConfirm').prop('disabled', false);
 
-  // Parse and preview Gcode.
-  previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
-  $('#uploadGcodeConfirm').prop('disabled', false);
+  } else if (fileType == "image/jpeg" || fileType == "image/png") {
+    // Load the image into an offscreen canvas.
+    var canvas = $("#offscreenCanvas").get(0);
+    var ctx = canvas.getContext('2d');
+    var img = new Image;
+    img.onload = function() {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      var gcode = rasterImage(canvas, img, file);
+      previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
+      $('#uploadGcodeConfirm').prop('disabled', false);
+    }
+    img.src = URL.createObjectURL(file);
+
+  } else {
+    $('#uploadGcodeError').html('Unsupported file type ' + fileType);
+  }
 }
 
 // Called when upload has been confirmed by user.
@@ -1000,7 +1022,7 @@ function showEtchASketch(canvas, frame) {
   }
 }
 
-// Render the given points into a set of waypoints contained within 
+// Render the given points into a set of waypoints contained within
 // the given bounding box.
 function render(points, bbox, offsetLeft, offsetBottom, zoomLevel) {
   var ret = []

@@ -33,6 +33,9 @@
   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
+  <!-- Caman -->
+  <script type="text/javascript" src="caman.full.min.js"></script>
+
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/5.8.2/firebase.js"></script>
   <script>
@@ -223,7 +226,7 @@
   <dialog id="uploadGcode" class="mdl-dialog">
     <div class="uploadGcodeHeader">
       <div class="mdl-dialog__title" id="uploadGcodeTitle">
-        Upload Gcode file
+        Upload image
       </div>
     </div>
     <!-- Upload Gcode body -->
@@ -238,6 +241,7 @@
       <div class="uploadGcodePreview">Preview</div>
       <div>
         <canvas id="previewCanvas" width=1060 height=864></canvas>
+        <canvas id="offscreenCanvas" width=300 height=200></canvas>
       </div>
     </div>
     <div class="mdl-dialog__actions">
@@ -273,6 +277,7 @@
   </dialog>
 
   <script src="gcode.js"></script>
+  <script src="raster.js"></script>
   <script src="main.js"></script>
 </body>
 
