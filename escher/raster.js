@@ -15,10 +15,11 @@ function getPixelLuminance(imgData, x, y) {
 
 function rasterImage(canvas, image, file) {
     Caman(canvas, function () {
-        this.brightness(100);
+        this.brightness(50);
         this.render();
         var ctx2 = this.canvas.getContext('2d');
-        var imgData2 = ctx.getImageData(0, 0, RASTER_WIDTH, RASTER_HEIGHT);
+        var imgData2 = ctx2.getImageData(0, 0, RASTER_WIDTH, RASTER_HEIGHT);
+        this.reloadCanvasData();
         console.log("MDW: 0,0 is: " + getPixelLuminance(imgData2, 0, 0));
     });
 
