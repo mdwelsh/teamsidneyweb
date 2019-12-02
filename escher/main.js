@@ -537,7 +537,7 @@ function updateDeviceSelector() {
 
 // Show the static Escher logo on the login canvas.
 function showLoginPreview() {
-  $.get('/escher-logo.gcode', data => {
+  $.get('escher-logo.gcode', data => {
     previewGcode(data, $("#loginCanvas").get(0), 0, 0, 1.0, true, 1);
   });
 }
