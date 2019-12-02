@@ -318,6 +318,15 @@ function setup() {
   $("#etchCanvas").mouseleave(function (e) {
     drawing = false;
   });
+  $("#etchCanvas").on("touchstart", function (e) {
+    etchCanvasMouseDown(e);
+  });
+  $("#etchCanvas").on("touchmove", function (e) {
+    etchCanvasMouseMove(e);
+  });
+  $("#etchCanvas").on("touchend", function (e) {
+    drawing = false;
+  });
 
   // Load Etch-A-Sketch background image.
   backgroundImage = new Image();
