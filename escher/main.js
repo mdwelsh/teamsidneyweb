@@ -915,6 +915,8 @@ var uploadedGcodeUrl = null;
 function uploadGcodeStart() {
   uploadedGcode = null;
   uploadedGcodeUrl = null;
+  $('#uploadGcodeFile').val('');
+  $('#uploadGcodeSize').empty();
   $('#uploadGcodeConfirm').prop('disabled', true);
   $('#uploadGcodeSelectedFile').empty();
   $('#uploadGcodeError').empty();
@@ -955,17 +957,22 @@ function uploadGcodePreview(data, file) {
 
   } else if (fileType == "image/jpeg" || fileType == "image/png") {
     // Load the image into an offscreen canvas.
-    var canvas = $("#offscreenCanvas").get(0);
+    var canvas = $('<canvas/>').get(0);
     var ctx = canvas.getContext('2d');
     var img = new Image;
     img.onload = function() {
       canvas.width = img.width;
       canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      var gcode = rasterImage(canvas, img, file);
-      previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
-      $('#uploadGcodeConfirm').prop('disabled', false);
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+      rasterImage(canvas, file).then((gcode) => {
+        console.log("Got back gcode from raster, size " + gcode.length);
+        var sizemb = gcode.length / (1024.0 * 1024.0)
+        $("#uploadGcodeSize").html("Gcode size: " + sizemb.toFixed(2) + "MB");
+        previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
+        $('#uploadGcodeConfirm').prop('disabled', false);
+      });
     }
+    // This is where we force the Image object to get the data from the file.
     img.src = URL.createObjectURL(file);
 
   } else {

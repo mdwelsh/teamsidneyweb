@@ -13,35 +13,39 @@ function getPixelLuminance(imgData, x, y) {
     return 1.0 - luminance;
 }
 
-function rasterImage(canvas, image, file) {
-    Caman(canvas, function () {
-        this.brightness(50);
-        this.render();
-        var ctx2 = this.canvas.getContext('2d');
-        var imgData2 = ctx2.getImageData(0, 0, RASTER_WIDTH, RASTER_HEIGHT);
-        this.reloadCanvasData();
-        console.log("MDW: 0,0 is: " + getPixelLuminance(imgData2, 0, 0));
+function rasterImage(canvas, file) {
+    console.log("rasterImage called with file " + file.name);
+    console.log(canvas);
+    return new Promise((resolve, reject) => {
+        console.log("Inside promise");
+        Filtrr2($(canvas), function () {
+            console.log("filtrr2 update callback");
+            this.brighten(50);
+            this.render(function () {
+                console.log("Filter render callback");
+                var gcode = "% Raster generated from " + file.name + "\n";
+                var ctx = canvas.getContext('2d');
+                var imgData = ctx.getImageData(0, 0, RASTER_WIDTH, RASTER_HEIGHT);
+                for (y = 0; y < RASTER_HEIGHT; y += 2) {
+                    for (x = 0; x < RASTER_WIDTH; x++) {
+                        var offset = getPixelLuminance(imgData, x, y) * 4.0;
+                        gcode += "G00 X" + x + " Y" + y + "\n";
+                        gcode += "G00 X" + x + " Y" + (y + offset) + "\n";
+                        gcode += "G00 X" + x + " Y" + y + "\n";
+                    }
+                    y += 1;
+                    for (x = RASTER_WIDTH - 1; x >= 0; x--) {
+                        var offset = getPixelLuminance(imgData, x, y) * 4.0;
+                        gcode += "G00 X" + x + " Y" + y + "\n";
+                        gcode += "G00 X" + x + " Y" + (y + offset) + "\n";
+                        gcode += "G00 X" + x + " Y" + y + "\n";
+                    }
+                }
+                console.log("Resolving with gcode length " + gcode.length);
+                resolve(gcode);
+            });
+        }, options={store: false});
+        // store: false is important here -- without it, Filtrr2 is trying
+        // to be too smart and caches the previous instance.
     });
-
-    var gcode = "% Raster generated from " + file.name + "\n";
-    var ctx = canvas.getContext('2d');
-    var imgData = ctx.getImageData(0, 0, RASTER_WIDTH, RASTER_HEIGHT);
-    console.log("MDW OUTSIDE: 0,0 is: " + getPixelLuminance(imgData, 0, 0));
-
-    for (y = 0; y < RASTER_HEIGHT; y += 2) {
-        for (x = 0; x < RASTER_WIDTH; x++) {
-            var offset = getPixelLuminance(imgData, x, y) * 4.0;
-            gcode += "G00 X" + x + " Y" + y + "\n";
-            gcode += "G00 X" + x + " Y" + (y + offset) + "\n";
-            gcode += "G00 X" + x + " Y" + y + "\n";
-        }
-        y += 1;
-        for (x = RASTER_WIDTH - 1; x >= 0; x--) {
-            var offset = getPixelLuminance(imgData, x, y) * 4.0;
-            gcode += "G00 X" + x + " Y" + y + "\n";
-            gcode += "G00 X" + x + " Y" + (y + offset) + "\n";
-            gcode += "G00 X" + x + " Y" + y + "\n";
-        }
-    }
-    return gcode;
 }
