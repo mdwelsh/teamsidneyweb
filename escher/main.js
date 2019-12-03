@@ -897,7 +897,7 @@ function drawUndoClicked() {
 
   // Look backwards for last undo point.
   var lastUndo = 0;
-  for (var i = lines.length-1; i >= 0; i--) {
+  for (var i = lines.length - 1; i >= 0; i--) {
     if (lines[i].startsWith('%')) {
       lastUndo = i;
       break;
@@ -956,24 +956,14 @@ function uploadGcodePreview(data, file) {
     $('#uploadGcodeConfirm').prop('disabled', false);
 
   } else if (fileType == "image/jpeg" || fileType == "image/png") {
-    // Load the image into an offscreen canvas.
-    var canvas = $('<canvas/>').get(0);
-    var ctx = canvas.getContext('2d');
-    var img = new Image;
-    img.onload = function() {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0, img.width, img.height);
-      rasterImage(canvas, file).then((gcode) => {
-        console.log("Got back gcode from raster, size " + gcode.length);
-        var sizemb = gcode.length / (1024.0 * 1024.0)
-        $("#uploadGcodeSize").html("Gcode size: " + sizemb.toFixed(2) + "MB");
-        previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
-        $('#uploadGcodeConfirm').prop('disabled', false);
-      });
-    }
-    // This is where we force the Image object to get the data from the file.
-    img.src = URL.createObjectURL(file);
+
+    rasterImage(URL.createObjectURL(file)).then((gcode) => {
+      console.log("Got back gcode from raster, size " + gcode.length);
+      var sizemb = gcode.length / (1024.0 * 1024.0);
+      $("#uploadGcodeSize").html("Gcode size: " + sizemb.toFixed(2) + "MB");
+      previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
+      $('#uploadGcodeConfirm').prop('disabled', false);
+    });
 
   } else {
     $('#uploadGcodeError').html('Unsupported file type ' + fileType);
@@ -1134,7 +1124,7 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
   var index = 0;
   var etchInterval = null;
   // Helper function to draw next point.
-  drawPoint = function(stroke) {
+  drawPoint = function (stroke) {
     if (index == rendered.length) {
       clearInterval(etchInterval);
       etchInterval = null;
@@ -1155,7 +1145,7 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
 
   if (delay == 0) {
     // Just draw all the points right now.
-    rendered.forEach(function(elem) { drawPoint(false); });
+    rendered.forEach(function (elem) { drawPoint(false); });
     ctx.stroke();
   } else {
     etchInterval = setInterval(drawPoint, 0, true);
