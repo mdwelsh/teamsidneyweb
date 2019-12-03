@@ -274,6 +274,14 @@ function setup() {
     controlHomeClicked();
   });
 
+  // Image adjustment sliders.
+  $('#imageControlBrightness').change(function () {
+    showGcode();
+  });
+  $('#imageControlContrast').change(function () {
+    showGcode();
+  });
+
   // Draw buttons.
   $('#drawUndo').off('click');
   $('#drawUndo').click(function (e) {
@@ -569,6 +577,8 @@ function selectGcode(fname) {
   }
 
   if (gcodeDoc.fileType == "image/jpeg" || gcodeDoc.fileType == "image/png") {
+    console.log('Showing image control buttons');
+    $('#imageControlButtons').removeClass('hidden');
     // For images, the curGcodeData object is actually the URL of the image.
     curGcodeData = gcodeDoc.url;
     curGcodeFname = fname;
@@ -578,6 +588,8 @@ function selectGcode(fname) {
     updateEtchState();
   } else {
     // Download the gcode data.
+    console.log('Hiding image control buttons');
+    $('#imageControlButtons').addClass('hidden');
     $.get(gcodeDoc.url, data => {
       curGcodeData = data;
       curGcodeFname = fname;
@@ -784,7 +796,9 @@ function previewGcode(gcodeDataOrUrl, fileType, canvas, offsetLeft, offsetBottom
   if (fileType == "image/jpeg" || fileType == "image/png") {
     // This is an image, not a gCode file. So, we need to first rasterize it,
     // and then call back to previewGcode with the result.
-    rasterImage(gcodeDataOrUrl, brightness=50, offsetLeft=offsetLeft, offsetBottom=offsetBottom, zoomLevel=zoomLevel).then((gcode) => {
+    var brightness = $("#imageControlBrightness").val();
+    var contrast = $("#imageControlContrast").val();
+    rasterImage(gcodeDataOrUrl, brightness, contrast, offsetLeft=offsetLeft, offsetBottom=offsetBottom, zoomLevel=zoomLevel).then((gcode) => {
       // Note that we have already applied the user's offset and zoom level to the rasterization.
       previewGcode(gcode, "text/x.gcode", canvas, 0, 0, 1.0, showFrame, delayMs);
     });

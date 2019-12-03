@@ -19,7 +19,7 @@ function getPixelLuminance(imgData, x, y) {
 
 
 // Generate gCode for the image at the given URL.
-function rasterImage(url, brightness = 50, offsetLeft=0, offsetBottom=0, zoomLevel=1.0) {
+function rasterImage(url, brightness = 50, contrast = 0, offsetLeft=0, offsetBottom=0, zoomLevel=1.0) {
     return new Promise((resolve, reject) => {
         var canvasEl = $('<canvas/>');
         var canvas = canvasEl.get(0);
@@ -61,7 +61,7 @@ function rasterImage(url, brightness = 50, offsetLeft=0, offsetBottom=0, zoomLev
             // Draw the image on the canvas.
             ctx.drawImage(img, 0, 0, img.width, img.height, offsetLeft+offsetX, -offsetBottom+offsetY, destWidth, destHeight);
 
-            rasterCanvas(canvas, brightness).then((gcode) => {
+            rasterCanvas(canvas, brightness, contrast).then((gcode) => {
                 resolve(gcode);
             });
         }
@@ -73,10 +73,14 @@ function rasterImage(url, brightness = 50, offsetLeft=0, offsetBottom=0, zoomLev
 
 
 // Take the given canvas and return Gcode for its contents.
-function rasterCanvas(canvas, brightness) {
+function rasterCanvas(canvas, brightness, contrast) {
     return new Promise((resolve, reject) => {
         Filtrr2($(canvas), function () {
+
+            // Apply filters.
             this.brighten(brightness);
+            this.contrast(contrast);
+
             this.render(function () {
                 var originX = 0;
                 var originY = 0;
