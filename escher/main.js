@@ -198,30 +198,24 @@ function setup() {
   // File upload dialog.
   $('#fileUploadButton').off('click');
   $('#fileUploadButton').click(function (e) {
-    console.log('fileUploadButton clicked');
-    console.log(e);
     uploadGcodeStart();
     $("#uploadGcode").get()[0].showModal();
   });
   $('#uploadGcodeFile').off('change');
   $('#uploadGcodeFile').change(function () {
-    console.log('uploadGcodeFile changed');
     var file = $('#uploadGcodeFile')[0].files[0];
     uploadGcodeFileSelected(file);
   });
   $('#uploadGcodeConfirm').off('click');
   $('#uploadGcodeConfirm').click(function (e) {
-    console.log('uploadGcodeConfirm clicked');
     uploadGcodeDoUpload();
   });
   $('#uploadGcodeCancel').off('click');
   $('#uploadGcodeCancel').click(function (e) {
-    console.log('uploadGcodeCancel clicked');
     $("#uploadGcode").get()[0].close();
   });
   $('#uploadGcodeClose').off('click');
   $('#uploadGcodeClose').click(function (e) {
-    console.log('uploadGcodeClose clicked');
     $("#uploadGcode").get()[0].close();
   });
 
@@ -452,9 +446,15 @@ function addGcodeCard(gcode, index) {
     .appendTo(previewArea);
 
   // Do the preview.
-  $.get(gcode.url, data => {
-    previewGcode(data, previewCanvas.get(0), 0, 0, 1.0, true, 0);
-  });
+  if (gcode.fileType == "image/jpeg" || gcode.fileType == "image/png") {
+    // For images, the data parameter is just the URL of the image.
+    previewGcode(gcode.url, gcode.fileType, previewCanvas.get(0), 0, 0, 1.0, true, 0);
+  } else {
+    // For gcode, we download it.
+    $.get(gcode.url, data => {
+      previewGcode(data, gcode.fileType, previewCanvas.get(0), 0, 0, 1.0, true, 0);
+    });
+  }
 
   // Card body (supporting text).
   var tl = $('<div/>')
@@ -538,7 +538,7 @@ function updateDeviceSelector() {
 // Show the static Escher logo on the login canvas.
 function showLoginPreview() {
   $.get('escher-logo.gcode', data => {
-    previewGcode(data, $("#loginCanvas").get(0), 0, 0, 1.0, true, 1);
+    previewGcode(data, "", $("#loginCanvas").get(0), 0, 0, 1.0, true, 1);
   });
 }
 
@@ -546,6 +546,7 @@ function selectGcode(fname) {
   curGcodeData = null;
   curGcodeFname = null;
   curGcodeUrl = null;
+  curGcodeFileType = null;
   drawingMode = false;
   drawing = false;
 
@@ -567,18 +568,29 @@ function selectGcode(fname) {
     return;
   }
 
-  // Download the gcode data.
-  $.get(gcodeDoc.url, data => {
-    curGcodeData = data;
+  if (gcodeDoc.fileType == "image/jpeg" || gcodeDoc.fileType == "image/png") {
+    // For images, the curGcodeData object is actually the URL of the image.
+    curGcodeData = gcodeDoc.url;
     curGcodeFname = fname;
     curGcodeUrl = gcodeDoc.url;
+    curGcodeFileType = gcodeDoc.fileType;
     showGcode();
     updateEtchState();
-  }).fail(err => {
-    showError('Error fetching gcode: ' + err);
-    curGcodeData = null;
-    updateEtchState();
-  });
+  } else {
+    // Download the gcode data.
+    $.get(gcodeDoc.url, data => {
+      curGcodeData = data;
+      curGcodeFname = fname;
+      curGcodeUrl = gcodeDoc.url;
+      curGcodeFileType = gcodeDoc.fileType;
+      showGcode();
+      updateEtchState();
+    }).fail(err => {
+      showError('Error fetching gcode: ' + err);
+      curGcodeData = null;
+      updateEtchState();
+    });
+  }
 }
 
 // Callback when device selector changes value.
@@ -763,12 +775,23 @@ function stopEtching() {
 }
 
 // Show the given GCode on the canvas.
-function previewGcode(gcodeData, canvas, offsetLeft, offsetBottom, zoomLevel,
+function previewGcode(gcodeDataOrUrl, fileType, canvas, offsetLeft, offsetBottom, zoomLevel,
   showFrame, delayMs) {
-  if (gcodeData == null) {
-    gcodeData = '';
+  if (gcodeDataOrUrl == null) {
+    gcodeDataOrUrl = '';
   }
-  var waypoints = parseGcode(gcodeData);
+
+  if (fileType == "image/jpeg" || fileType == "image/png") {
+    // This is an image, not a gCode file. So, we need to first rasterize it,
+    // and then call back to previewGcode with the result.
+    rasterImage(gcodeDataOrUrl, brightness=50, offsetLeft=offsetLeft, offsetBottom=offsetBottom, zoomLevel=zoomLevel).then((gcode) => {
+      // Note that we have already applied the user's offset and zoom level to the rasterization.
+      previewGcode(gcode, "text/x.gcode", canvas, 0, 0, 1.0, showFrame, delayMs);
+    });
+    return;
+  }
+
+  var waypoints = parseGcode(gcodeDataOrUrl);
   if (showFrame) {
     showEtchASketch(canvas, true);
   }
@@ -811,7 +834,7 @@ function controlHomeClicked() {
 }
 
 function showGcode() {
-  previewGcode(curGcodeData, $("#etchCanvas").get(0), offset_left, offset_bottom, zoom, true, 0);
+  previewGcode(curGcodeData, curGcodeFileType, $("#etchCanvas").get(0), offset_left, offset_bottom, zoom, true, 0);
 }
 
 // Called by mousedown / mousemove events on the canvas.
@@ -928,14 +951,12 @@ function uploadGcodeStart() {
 // Called when Gcode file selector changes.
 function uploadGcodeFileSelected(file) {
   uploadedGcode = file;
-  var fileType = file['type'];
 
   $('#uploadGcodeConfirm').prop('disabled', true);
   $('#uploadGcodeSelectedFile').text('File: ' + file.name);
   $('#uploadGcodeError').empty();
   $('#uploadGcodeLink').empty();
 
-  console.log('Reading: ' + file.name);
   var reader = new FileReader();
   reader.onloadend = function () {
     uploadGcodePreview(reader.result, file);
@@ -945,23 +966,19 @@ function uploadGcodeFileSelected(file) {
 
 // Callback when file data has been read and preview needs to be shown.
 function uploadGcodePreview(data, file) {
-  console.log('Finished reading ' + file.name);
   var fileType = file['type'];
-  console.log('File type: ' + fileType);
-
   if (fileType == "text/x.gcode") {
     var enc = new TextDecoder("utf-8");
     var gcode = enc.decode(data);
-    previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
+    previewGcode(gcode, "text/x.gcode", $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
     $('#uploadGcodeConfirm').prop('disabled', false);
 
   } else if (fileType == "image/jpeg" || fileType == "image/png") {
 
     rasterImage(URL.createObjectURL(file)).then((gcode) => {
-      console.log("Got back gcode from raster, size " + gcode.length);
       var sizemb = gcode.length / (1024.0 * 1024.0);
       $("#uploadGcodeSize").html("Gcode size: " + sizemb.toFixed(2) + "MB");
-      previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
+      previewGcode(gcode, "text/x.gcode", $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
       $('#uploadGcodeConfirm').prop('disabled', false);
     });
 
@@ -976,12 +993,10 @@ function uploadGcodeDoUpload() {
   $('#uploadGcodeSpinner').show();
 
   var fname = uploadedGcode.name;
-  console.log('Starting upload of ' + fname);
   var storageRef = firebase.storage().ref();
   var uploadRef = storageRef.child("escher/gcode/" + fname);
   uploadRef.put(uploadedGcode).then(function (snapshot) {
     // Upload done.
-    console.log('Upload complete');
     $('#uploadGcodeSpinner').hide();
     // Add link.
     uploadRef.getDownloadURL().then(function (url) {
@@ -990,14 +1005,13 @@ function uploadGcodeDoUpload() {
         dateUploaded: firebase.firestore.FieldValue.serverTimestamp(),
         filename: fname,
         url: url,
+        fileType: uploadedGcode['type'],
       }).then(function (docRef) {
         // Close the dialog.
-        console.log('Done with upload, closing dialog');
         $("#uploadGcode").get()[0].close();
         showMessage('Uploaded ' + fname);
       }).catch(function (error) {
         // Close the dialog.
-        console.log('Upload error, closing dialog');
         $("#uploadGcode").get()[0].close();
         showError('Error uploading Gcode: ' + error.message);
       });
