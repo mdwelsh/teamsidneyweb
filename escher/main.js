@@ -579,6 +579,7 @@ function selectGcode(fname) {
     drawingMode = true;
     curGcodeData = '';
     showGcode();
+    updateEtchState();
     return;
   }
 
@@ -680,7 +681,7 @@ function updateEtchState() {
   }
   $("#currentDeviceState").text(deviceState + ", last seen " + ds);
 
-  if (deviceState == "idle" && curGcodeDoc != null) {
+  if (deviceState == "idle" && (drawingMode || curGcodeDoc != null)) {
     etchButtonDisabled = false;
     stopButtonDisabled = true;
   } else if (deviceState == "etching") {
@@ -704,12 +705,12 @@ function etchControlStartClicked() {
     return;
   }
 
-  if (!drawing && curGcodeDoc == null) {
+  if (!drawingMode && curGcodeDoc == null) {
     showError('No Gcode selected.');
     return;
   }
 
-  if (drawing || isImage(curGcodeDoc.fileType)) {
+  if (drawingMode || isImage(curGcodeDoc.fileType)) {
     // We need to upload curGcodeData to a temporary file, and send that
     // as the etch command.
     makeTemporaryGcodeFile(curGcodeData).then((url) => {
