@@ -10,10 +10,13 @@ var curDeviceID = null;
 var curDeviceListener = null;
 var curAccessCode = null;
 
-// The currently selected Gcode data object.
+// The currently selected gCode document.
+var curGcodeDoc = null;
+
+// The current gCode being displayed on the etch canvas.
 var curGcodeData = null;
-var curGcodeFname = null;
-var curGcodeUrl = null;
+
+// Whether we are currently drawing by hand.
 var drawingMode = false;
 var drawing = false;
 
@@ -273,6 +276,10 @@ function setup() {
   $('#controlHome').click(function (e) {
     controlHomeClicked();
   });
+  $('#controlPlay').off('click');
+  $('#controlPlay').click(function (e) {
+    showGcode(playSlow=true);
+  });
 
   // Image adjustment sliders.
   $('#imageControlBrightness').change(function () {
@@ -289,7 +296,7 @@ function setup() {
   });
   $('#drawClear').off('click');
   $('#drawClear').click(function (e) {
-    curGcodeData = null;
+    curGcodeDoc = null;
     showGcode();
   });
 
@@ -385,6 +392,11 @@ function loginButtonClicked() {
   findDevice(code);
 }
 
+// Returns true if the given MIME type is an image we know how to raster.
+function isImage(fileType) {
+  return fileType == "image/jpeg" || fileType == "image/png";
+}
+
 // The list of Gcode files that we know about.
 var gcodeFiles = new Map();
 
@@ -454,13 +466,16 @@ function addGcodeCard(gcode, index) {
     .appendTo(previewArea);
 
   // Do the preview.
-  if (gcode.fileType == "image/jpeg" || gcode.fileType == "image/png") {
-    // For images, the data parameter is just the URL of the image.
-    previewGcode(gcode.url, gcode.fileType, previewCanvas.get(0), 0, 0, 1.0, true, 0);
+  if (isImage(gcode.fileType)) {
+    // For images, we need to generate gCode first.
+    generateGcodeFromImageUrl(gcode.url, 0, 0, 1.0).then((gcode) => {
+      previewGcode(gcode, previewCanvas.get(0), 0, 0, 1.0, true, 0);
+    });
+
   } else {
-    // For gcode, we download it.
+    // For gCode data, we just download it and then render it.
     $.get(gcode.url, data => {
-      previewGcode(data, gcode.fileType, previewCanvas.get(0), 0, 0, 1.0, true, 0);
+      previewGcode(data, previewCanvas.get(0), 0, 0, 1.0, true, 0);
     });
   }
 
@@ -546,18 +561,15 @@ function updateDeviceSelector() {
 // Show the static Escher logo on the login canvas.
 function showLoginPreview() {
   $.get('escher-logo.gcode', data => {
-    previewGcode(data, "", $("#loginCanvas").get(0), 0, 0, 1.0, true, 1);
+    previewGcode(data, $("#loginCanvas").get(0), 0, 0, 1.0, true, 1);
   });
 }
 
 function selectGcode(fname) {
+  curGcodeDoc = null;
   curGcodeData = null;
-  curGcodeFname = null;
-  curGcodeUrl = null;
-  curGcodeFileType = null;
   drawingMode = false;
   drawing = false;
-
   offset_left = 0;
   offset_bottom = 0;
   zoom = 1.0;
@@ -565,44 +577,19 @@ function selectGcode(fname) {
   if (fname == "-- Draw your own image --") {
     $('#drawButtons').removeClass('hidden');
     drawingMode = true;
+    curGcodeData = '';
     showGcode();
     return;
   }
 
   $('#drawButtons').addClass('hidden');
-  var gcodeDoc = gcodeFiles.get(fname);
-  if (gcodeDoc == null) {
+  curGcodeDoc = gcodeFiles.get(fname);
+  if (curGcodeDoc == null) {
     // User has cleared gcode.
     return;
   }
-
-  if (gcodeDoc.fileType == "image/jpeg" || gcodeDoc.fileType == "image/png") {
-    console.log('Showing image control buttons');
-    $('#imageControlButtons').removeClass('hidden');
-    // For images, the curGcodeData object is actually the URL of the image.
-    curGcodeData = gcodeDoc.url;
-    curGcodeFname = fname;
-    curGcodeUrl = gcodeDoc.url;
-    curGcodeFileType = gcodeDoc.fileType;
-    showGcode();
-    updateEtchState();
-  } else {
-    // Download the gcode data.
-    console.log('Hiding image control buttons');
-    $('#imageControlButtons').addClass('hidden');
-    $.get(gcodeDoc.url, data => {
-      curGcodeData = data;
-      curGcodeFname = fname;
-      curGcodeUrl = gcodeDoc.url;
-      curGcodeFileType = gcodeDoc.fileType;
-      showGcode();
-      updateEtchState();
-    }).fail(err => {
-      showError('Error fetching gcode: ' + err);
-      curGcodeData = null;
-      updateEtchState();
-    });
-  }
+  showGcode();
+  updateEtchState();
 }
 
 // Callback when device selector changes value.
@@ -693,7 +680,7 @@ function updateEtchState() {
   }
   $("#currentDeviceState").text(deviceState + ", last seen " + ds);
 
-  if (deviceState == "idle" && curGcodeData != null) {
+  if (deviceState == "idle" && curGcodeDoc != null) {
     etchButtonDisabled = false;
     stopButtonDisabled = true;
   } else if (deviceState == "etching") {
@@ -716,12 +703,33 @@ function etchControlStartClicked() {
     showError('No device selected');
     return;
   }
-  if (curGcodeUrl == null) {
+
+  if (!drawing && curGcodeDoc == null) {
     showError('No Gcode selected.');
     return;
   }
 
-  startEtching();
+  if (drawing || isImage(curGcodeDoc.fileType)) {
+    // We need to upload curGcodeData to a temporary file, and send that
+    // as the etch command.
+    makeTemporaryGcodeFile(curGcodeData).then((url) => {
+      if (drawingMode) {
+        // For drawing mode, we do not want the device to scale to fit.
+        startEtching(url, offset_left, offset_bottom, zoom, false);
+      } else {
+        // For images, we ignore the user-specified offset and zoom.
+        startEtching(url, 0, 0, 1.0, false);
+      }
+    }).catch((error) => {
+      showError('Error creating temporary gcode file: ' + error.message);
+      return;
+    });
+  } else {
+    startEtching(curGcodeDoc.url, offset_left, offset_bottom, zoom, true);
+  }
+
+  // Close the dialog.
+  $("#etchControl").get()[0].close();
 }
 
 // Called when stop button is clicked.
@@ -730,12 +738,28 @@ function stopButtonClicked() {
     showError('No device selected');
     return;
   }
-
   stopEtching();
 }
 
+// Uploads the given gcode data to a temporary file and returns a Promise
+// that resolves to its url.
+function makeTemporaryGcodeFile(gcodeData) {
+  return new Promise((resolve, reject) => {
+    var fname = "tmp-" + new Date().toISOString() + ".gcode";
+    var storageRef = firebase.storage().ref();
+    var uploadRef = storageRef.child("escher/tmp/" + fname);
+    uploadRef.put(new Blob([gcodeData])).then(function (snapshot) {
+      uploadRef.getDownloadURL().then(function (url) {
+        resolve(url);
+      });
+    }).catch(function (error) {
+      showError('Error uploading Gcode: ' + error.message);
+    });
+  });
+}
+
 // Send etch command to Firebase.
-function startEtching() {
+function startEtching(url, offsetLeft, offsetBottom, zoomLevel, scaleToFit) {
   db.collection("escher")
     .doc("root")
     .collection("secret")
@@ -746,18 +770,15 @@ function startEtching() {
     .doc("etch")
     .update({
       created: firebase.firestore.FieldValue.serverTimestamp(),
-      url: curGcodeUrl,
-      offsetLeft: offset_left,
-      offsetBottom: offset_bottom,
-      zoom: zoom,
+      url: url,
+      offsetLeft: offsetLeft,
+      offsetBottom: offsetBottom,
+      zoom: zoomLevel,
+      scaleToFit: scaleToFit,
     }).then(function (docRef) {
-      // Close the dialog.
-      $("#etchControl").get()[0].close();
       showMessage('Etching will begin shortly.');
       updateEtchState();
     }).catch(function (error) {
-      // Close the dialog.
-      $("#etchControl").get()[0].close();
       showError('Error sending etch command: ' + error.message);
       updateEtchState();
     });
@@ -786,26 +807,23 @@ function stopEtching() {
     });
 }
 
-// Show the given GCode on the canvas.
-function previewGcode(gcodeDataOrUrl, fileType, canvas, offsetLeft, offsetBottom, zoomLevel,
-  showFrame, delayMs) {
-  if (gcodeDataOrUrl == null) {
-    gcodeDataOrUrl = '';
-  }
-
-  if (fileType == "image/jpeg" || fileType == "image/png") {
-    // This is an image, not a gCode file. So, we need to first rasterize it,
-    // and then call back to previewGcode with the result.
+// Returns a Promise which will resolve to the gCode for the given image URL.
+function generateGcodeFromImageUrl(url, offsetLeft, offsetBottom, zoomLevel) {
+  return new Promise((resolve, reject) => {
     var brightness = $("#imageControlBrightness").val();
     var contrast = $("#imageControlContrast").val();
-    rasterImage(gcodeDataOrUrl, brightness, contrast, offsetLeft=offsetLeft, offsetBottom=offsetBottom, zoomLevel=zoomLevel).then((gcode) => {
-      // Note that we have already applied the user's offset and zoom level to the rasterization.
-      previewGcode(gcode, "text/x.gcode", canvas, 0, 0, 1.0, showFrame, delayMs);
+    rasterImage(url, brightness, contrast, offsetLeft=offsetLeft, offsetBottom=offsetBottom, zoomLevel=zoomLevel).then((gcode) => {
+      resolve(gcode);
     });
-    return;
-  }
+  });
+}
 
-  var waypoints = parseGcode(gcodeDataOrUrl);
+// Show the given GCode on the canvas.
+function previewGcode(gcodeData, canvas, offsetLeft, offsetBottom, zoomLevel, showFrame, delayMs) {
+  if (gcodeData == null) {
+    gcodeData = '';
+  }
+  var waypoints = parseGcode(gcodeData);
   if (showFrame) {
     showEtchASketch(canvas, true);
   }
@@ -847,9 +865,48 @@ function controlHomeClicked() {
   showGcode();
 }
 
-function showGcode() {
-  previewGcode(curGcodeData, curGcodeFileType, $("#etchCanvas").get(0), offset_left, offset_bottom, zoom, true, 0);
+// Show the gCode selected in curGcodeDoc on the preview canvas.
+function showGcode(playSlow=false) {
+  // Stop any playback in progress.
+  if (etchInterval != null) {
+    clearInterval(etchInterval);
+  }
+  var delayMs = 0;
+  if (playSlow) {
+    delayMs = 1;
+  }
+  if (drawingMode) {
+    // If we're drawing, we already have the gCode ready to display.
+    $('#imageControlButtons').addClass('hidden');
+    previewGcode(curGcodeData, $("#etchCanvas").get(0), offset_left, offset_bottom, zoom, true, delayMs);
+    return;
+  }
+
+  if (curGcodeDoc == null) {
+    return;
+  }
+  if (isImage(curGcodeDoc.fileType)) {
+    $('#imageControlButtons').removeClass('hidden');
+    // For images, we need to generate gCode first.
+    generateGcodeFromImageUrl(curGcodeDoc.url, offset_left, offset_bottom, zoom).then((gcode) => {
+      curGcodeData = gcode;
+      previewGcode(curGcodeData, $("#etchCanvas").get(0), offset_left, offset_bottom, zoom, true, delayMs);
+    });
+
+  } else {
+    // For gCode, we download and render the data.
+    $('#imageControlButtons').addClass('hidden');
+    $.get(curGcodeDoc.url, data => {
+      previewGcode(data, $("#etchCanvas").get(0), offset_left, offset_bottom, zoom, true, delayMs);
+    }).fail(err => {
+      showError('Error fetching gcode: ' + err);
+      updateEtchState();
+    })
+  }
 }
+
+var last_drawing_gcode_xval = null;
+var last_drawing_gcode_yval = null;
 
 // Called by mousedown / mousemove events on the canvas.
 function etchCanvasDraw(e) {
@@ -889,6 +946,8 @@ function etchCanvasMouseDown(e) {
     return;
   }
   addGcodeUndoPoint();
+  last_drawing_gcode_xval = null;
+  last_drawing_gcode_yval = null;
   drawing = true;
   etchCanvasDraw(e);
 }
@@ -900,22 +959,19 @@ function etchCanvasMouseMove(e) {
   etchCanvasDraw(e);
 }
 
-var last_gcode_xval = null;
-var last_gcode_yval = null;
-
 function addGcodeWaypoint(etchX, etchY) {
   var xval = Math.floor(etchX * VIRTUAL_ETCH_A_SKETCH_BBOX.width);
   var yval = Math.floor(etchY * VIRTUAL_ETCH_A_SKETCH_BBOX.height);
   // Avoid adding too many points.
-  if (xval == last_gcode_xval && yval == last_gcode_yval) {
+  if (xval == last_drawing_gcode_xval && yval == last_drawing_gcode_yval) {
     return;
   }
   if (curGcodeData == null) {
     curGcodeData = "";
   }
   curGcodeData += "G00 X" + xval + " Y" + yval + "\n";
-  last_gcode_xval = xval;
-  last_gcode_yval = yval;
+  last_drawing_gcode_xval = xval;
+  last_drawing_gcode_yval = yval;
 }
 
 function addGcodeUndoPoint() {
@@ -984,15 +1040,17 @@ function uploadGcodePreview(data, file) {
   if (fileType == "text/x.gcode") {
     var enc = new TextDecoder("utf-8");
     var gcode = enc.decode(data);
-    previewGcode(gcode, "text/x.gcode", $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
+    var sizemb = gcode.length / (1024.0 * 1024.0);
+    $("#uploadGcodeSize").html("Gcode size: " + sizemb.toFixed(2) + "MB");
+    previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
     $('#uploadGcodeConfirm').prop('disabled', false);
 
-  } else if (fileType == "image/jpeg" || fileType == "image/png") {
-
-    rasterImage(URL.createObjectURL(file)).then((gcode) => {
+  } else if (isImage(fileType)) {
+    // For images, we generate gCode first.
+    generateGcodeFromImageUrl(url.createObjectURL(file), 0, 0, 1.0).then((gcode) => {
       var sizemb = gcode.length / (1024.0 * 1024.0);
       $("#uploadGcodeSize").html("Gcode size: " + sizemb.toFixed(2) + "MB");
-      previewGcode(gcode, "text/x.gcode", $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
+      previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
       $('#uploadGcodeConfirm').prop('disabled', false);
     });
 
@@ -1080,6 +1138,8 @@ function render(points, bbox, offsetLeft, offsetBottom, zoomLevel) {
   return ret;
 }
 
+// Interval for etching on a timer.
+var etchInterval = null;
 
 // Draw the given points on the canvas with a given linewidth.
 function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoomLevel, scaleToFit, delay) {
@@ -1091,7 +1151,6 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
   //ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
 
   if (scaleToFit) {
-
     // Goal: Scale the gCode object so that it is centered
     // within the given bounding box, with its longest
     // dimension exactly filling the bounding box. The user-provided
@@ -1150,12 +1209,13 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
   ctx.moveTo(bbox.x, (bbox.y + bbox.height));
 
   var index = 0;
-  var etchInterval = null;
   // Helper function to draw next point.
   drawPoint = function (stroke) {
     if (index == rendered.length) {
-      clearInterval(etchInterval);
-      etchInterval = null;
+      if (etchInterval != null) {
+        clearInterval(etchInterval);
+        etchInterval = null;
+      }
       ctx.stroke();
       return;
     }
