@@ -9,7 +9,7 @@ function atan3(dy, dx) {
 }
 
 // Precision of arcs in centimeters per segment.
-const CM_PER_SEGMENT = 0.1;
+const CM_PER_SEGMENT = 5;
 
 // Adapted from:
 //  https://www.marginallyclever.com/2014/03/how-to-improve-the-2-axis-cnc-gcode-interpreter-to-understand-arcs/
@@ -35,6 +35,10 @@ function doArc(posx, posy, x, y, cx, cy, cw) {
   // get length of arc
   var l = Math.abs(sweep) * radius;
   var num_segments = Math.floor(l / CM_PER_SEGMENT);
+
+  //console.log(`doArc: posx ${posx} posy ${posy} x ${x} y ${y} cx ${cx} cy ${cy} cw ${cw}`);
+  //console.log(`doArc: dx ${dx} dy ${dy} radius ${radius} angle1 ${angle1} angle2 ${angle2} sweep ${sweep}`);
+  //console.log(`doArc: l ${l} num_segments ${num_segments}`);
 
   for (i = 0; i < num_segments; i++) {
     // interpolate around the arc

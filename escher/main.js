@@ -1162,6 +1162,7 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
     var maxx = Math.max(...waypoints.map(wp => wp.x));
     var miny = Math.min(...waypoints.map(wp => wp.y));
     var maxy = Math.max(...waypoints.map(wp => wp.y));
+    console.log(`etch: minx ${minx} maxx ${maxx} miny ${miny} maxy ${maxy}`);
 
     // Translate gCode object to lower left corner.
     waypoints.forEach(function (pt) {
@@ -1173,6 +1174,7 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
     var bbox_ratio = bbox.width / bbox.height;
     var dx = maxx - minx;
     var dy = maxy - miny;
+    console.log(`etch: width ${bbox.width} height ${bbox.height} bbox_ratio ${bbox_ratio} dx ${dx} dy ${dy}`);
     var scale;
     var offset_x;
     var offset_y;
@@ -1201,6 +1203,9 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
     scale = 1.0;
   }
 
+  console.log(`etch: offset_x ${offset_x} offset_y ${offset_y} scale ${scale}`);
+  console.log(`etch: offsetLeft ${offsetLeft} offsetBottom ${offsetBottom} zoomLevel ${zoomLevel}`);
+
   // Now render with these offsets and scaling.
   var rendered = render(waypoints, bbox, offsetLeft + offset_x, offsetBottom + offset_y, zoomLevel * scale);
   ctx.beginPath();
@@ -1223,6 +1228,7 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
     var elem = rendered[index];
     var x = elem.x;
     var y = elem.y;
+    //console.log(`etch: moving to ${x} ${y}`);
     // Flip the y-axis.
     y = bbox.height - (y - bbox.y) + bbox.y;
     ctx.lineTo(x, y);
