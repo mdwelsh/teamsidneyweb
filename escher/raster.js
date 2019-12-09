@@ -1,8 +1,8 @@
 /* Code to generate gCode from images. */
 
 // Width and height of the raster surface in "pixels".
-const RASTER_WIDTH = 300;
-const RASTER_HEIGHT = 200;
+const RASTER_WIDTH = 100;
+const RASTER_HEIGHT = 100;
 // Aspect ratio of the raster surface.
 const RASTER_RATIO = (RASTER_WIDTH * 1.0) / (RASTER_HEIGHT * 1.0);
 

@@ -155,8 +155,6 @@
               <div role="group">
                 <button id="etchButton" type="button" class="mdl-button mdl-button--raised mdl-button--accent"
                   disabled>Etch!</button>
-                <button id="stopButton" type="button" class="mdl-button mdl-button--raised mdl-button--colored"
-                  disabled>Stop</button>
               </div>
 
               <div role="group" id="controlButtons">
@@ -254,6 +252,9 @@
       <label class="mdl-button mdl-button--colored mdl-js-button mdl-button--raised mdl-js-ripple-effect">
         Choose file <input id="uploadGcodeFile" type="file" style="display: none;">
       </label>
+      <div style="margin-top: 10px;">
+        Supported formats: Gcode, JPEG, and PNG
+      </div>
       <div class="uploadGcodeSelectedFile" id="uploadGcodeSelectedFile"></div>
       <div class="uploadGcodeError" id="uploadGcodeError"></div>
       <div id="uploadGcodeSpinner" class="mdl-progress mdl-js-progress mdl-progress__indeterminate"></div>

@@ -138,7 +138,7 @@ body {
 
 /* Upload Gcode dialog */
 #uploadGcode {
-  width: 80%;
+  width: 60%;
 }
 
 .uploadGcodePreview {
@@ -147,7 +147,7 @@ body {
 }
 
 #previewCanvas {
-  width: 80%;
+  width: 60%;
   height: auto;
 }
 

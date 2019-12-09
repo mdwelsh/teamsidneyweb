@@ -613,7 +613,7 @@ function findDevice(accessCode) {
       // use the one with the newest checkin time.
       var chosenDoc = null;
       result.docs.forEach((d) => {
-        if (chosenDoc == null || d.data().updateTime > newest) {
+        if (chosenDoc == null || d.data().updateTime > chosenDoc.updateTime) {
           chosenDoc = d;
         }
       });
@@ -631,13 +631,16 @@ function findDevice(accessCode) {
 
       // Subscribe to status updates on this device entry.
       curDeviceListener = chosenDoc.ref.onSnapshot((snapshot) => {
+        curDevice = snapshot.data();
+        console.log("Got curDevice update:");
+        console.log(curDevice);
         updateEtchState();
       });
     });
 }
 
 // Select the given device by MAC.
-function selectDevice(mac, device, accessCode) {
+function selectDevice(mac, device) {
   console.log("Selecting device: " + mac);
   // Unsubscribe to state changes on old device.
   if (curDeviceListener != null) {
@@ -719,7 +722,7 @@ function etchControlStartClicked() {
         startEtching(url, offset_left, offset_bottom, zoom, false);
       } else {
         // For images, we ignore the user-specified offset and zoom.
-        startEtching(url, 0, 0, 1.0, false);
+        startEtching(url, 0, 0, 1.0, true);
       }
     }).catch((error) => {
       showError('Error creating temporary gcode file: ' + error.message);
@@ -769,7 +772,8 @@ function startEtching(url, offsetLeft, offsetBottom, zoomLevel, scaleToFit) {
     .doc(curDevice.mac)
     .collection("commands")
     .doc("etch")
-    .update({
+    .set({
+      command: 'etch',
       created: firebase.firestore.FieldValue.serverTimestamp(),
       url: url,
       offsetLeft: offsetLeft,
@@ -795,7 +799,7 @@ function stopEtching() {
     .doc(curDevice.mac)
     .collection("commands")
     .doc("etch")
-    .update({
+    .set({
       created: firebase.firestore.FieldValue.serverTimestamp(),
       // This is how we indicate that the device should stop.
       url: "",
@@ -1038,15 +1042,7 @@ function uploadGcodeFileSelected(file) {
 // Callback when file data has been read and preview needs to be shown.
 function uploadGcodePreview(data, file) {
   var fileType = file['type'];
-  if (fileType == "text/x.gcode") {
-    var enc = new TextDecoder("utf-8");
-    var gcode = enc.decode(data);
-    var sizemb = gcode.length / (1024.0 * 1024.0);
-    $("#uploadGcodeSize").html("Gcode size: " + sizemb.toFixed(2) + "MB");
-    previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
-    $('#uploadGcodeConfirm').prop('disabled', false);
-
-  } else if (isImage(fileType)) {
+  if (isImage(fileType)) {
     // For images, we generate gCode first.
     generateGcodeFromImageUrl(url.createObjectURL(file), 0, 0, 1.0).then((gcode) => {
       var sizemb = gcode.length / (1024.0 * 1024.0);
@@ -1054,9 +1050,13 @@ function uploadGcodePreview(data, file) {
       previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
       $('#uploadGcodeConfirm').prop('disabled', false);
     });
-
   } else {
-    $('#uploadGcodeError').html('Unsupported file type ' + fileType);
+    var enc = new TextDecoder("utf-8");
+    var gcode = enc.decode(data);
+    var sizemb = gcode.length / (1024.0 * 1024.0);
+    $("#uploadGcodeSize").html("Gcode size: " + sizemb.toFixed(2) + "MB");
+    previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
+    $('#uploadGcodeConfirm').prop('disabled', false);
   }
 }
 
@@ -1147,9 +1147,9 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
   var ctx = canvas.getContext("2d");
 
   // Debugging - draw bounding box on canvas.
-  //ctx.strokeStyle = 'blue';
-  //ctx.lineWidth = 3;
-  //ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
+//  ctx.strokeStyle = 'blue';
+//  ctx.lineWidth = 3;
+//  ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
 
   if (scaleToFit) {
     // Goal: Scale the gCode object so that it is centered
@@ -1162,7 +1162,6 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
     var maxx = Math.max(...waypoints.map(wp => wp.x));
     var miny = Math.min(...waypoints.map(wp => wp.y));
     var maxy = Math.max(...waypoints.map(wp => wp.y));
-    console.log(`etch: minx ${minx} maxx ${maxx} miny ${miny} maxy ${maxy}`);
 
     // Translate gCode object to lower left corner.
     waypoints.forEach(function (pt) {
@@ -1174,7 +1173,6 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
     var bbox_ratio = bbox.width / bbox.height;
     var dx = maxx - minx;
     var dy = maxy - miny;
-    console.log(`etch: width ${bbox.width} height ${bbox.height} bbox_ratio ${bbox_ratio} dx ${dx} dy ${dy}`);
     var scale;
     var offset_x;
     var offset_y;
@@ -1203,9 +1201,6 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
     scale = 1.0;
   }
 
-  console.log(`etch: offset_x ${offset_x} offset_y ${offset_y} scale ${scale}`);
-  console.log(`etch: offsetLeft ${offsetLeft} offsetBottom ${offsetBottom} zoomLevel ${zoomLevel}`);
-
   // Now render with these offsets and scaling.
   var rendered = render(waypoints, bbox, offsetLeft + offset_x, offsetBottom + offset_y, zoomLevel * scale);
   ctx.beginPath();
@@ -1228,7 +1223,6 @@ function etch(waypoints, canvas, bbox, lineWidth, offsetLeft, offsetBottom, zoom
     var elem = rendered[index];
     var x = elem.x;
     var y = elem.y;
-    //console.log(`etch: moving to ${x} ${y}`);
     // Flip the y-axis.
     y = bbox.height - (y - bbox.y) + bbox.y;
     ctx.lineTo(x, y);
