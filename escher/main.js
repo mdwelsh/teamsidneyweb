@@ -1043,13 +1043,19 @@ function uploadGcodeFileSelected(file) {
 function uploadGcodePreview(data, file) {
   var fileType = file['type'];
   if (isImage(fileType)) {
+    // MDW 9-Dec-2019: I'm temporarily disabling uploads of images since
+    // the actual drawing of them doesn't work so well on the physical
+    // Etch-a-Sketch.
+
     // For images, we generate gCode first.
-    generateGcodeFromImageUrl(url.createObjectURL(file), 0, 0, 1.0).then((gcode) => {
-      var sizemb = gcode.length / (1024.0 * 1024.0);
-      $("#uploadGcodeSize").html("Gcode size: " + sizemb.toFixed(2) + "MB");
-      previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
-      $('#uploadGcodeConfirm').prop('disabled', false);
-    });
+    //generateGcodeFromImageUrl(url.createObjectURL(file), 0, 0, 1.0).then((gcode) => {
+    //  var sizemb = gcode.length / (1024.0 * 1024.0);
+    //  $("#uploadGcodeSize").html("Gcode size: " + sizemb.toFixed(2) + "MB");
+    //  previewGcode(gcode, $("#previewCanvas").get(0), 0, 0, 1.0, true, 0);
+    //  $('#uploadGcodeConfirm').prop('disabled', false);
+    //});
+    $('#uploadGcodeError').html('Unsupported file type ' + fileType);
+
   } else {
     var enc = new TextDecoder("utf-8");
     var gcode = enc.decode(data);
