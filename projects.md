@@ -3,6 +3,21 @@ title: Our projects
 ---
 Check out some of Team Sidney Enterprises' projects below.
 
+# Escher - The World's First Cloud-Controlled Etch-a-Sketch
+
+{:.center}
+[![Escher](/images/escher.jpg){:height="300px"}](/images/escher.jpg)
+[![Escher Web UI](/images/escher-web.png){:height="300px"}](/images/escher-web.png)
+
+Escher is an Arduino-controlled robotic Etch-a-Sketch that uses [Google Firebase](https://firebase.google.com/)
+to allow it to be controlled from anywhere in the world, using a web-based UI.
+
+* [Blog post](https://medium.com/@mdwdotla/escher-the-worlds-first-cloud-controlled-etch-a-sketch-f2d5b7f1bd44)
+* [Arduino source code](https://github.com/mdwelsh/teamsidney/tree/master/arduino/Escher/Escher)
+* [Web UI source code](https://github.com/mdwelsh/teamsidneyweb/tree/master/escher)
+* [3D printed part designs](https://www.thingiverse.com/thing:4040686)
+* [Power board schematics and Gerber files](https://github.com/mdwelsh/teamsidney/tree/master/arduino/Escher/hardware)
+
 # Theosaber
 
 {:.center}
