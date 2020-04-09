@@ -3,6 +3,13 @@ title: Our projects
 ---
 Check out some of Team Sidney Enterprises' projects below.
 
+# Mechanical keyboard with laser-cut case
+
+I built this keyboard around the kbdfans.com KBD75 PCB, using Kailh Box White switches. The case is my own design,
+laser cut using walnut, maple, and acrylic. It's very clicky.
+
+[![Mechanical keyboard](/images/keyboard.jpg){:height="300px"}](/images/keyboard.jpg)
+
 # Escher - The World's First Cloud-Controlled Etch-a-Sketch
 
 {:.center}
