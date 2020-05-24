@@ -3,6 +3,20 @@ title: Our projects
 ---
 Check out some of Team Sidney Enterprises' projects below.
 
+# Tiki's Adventure
+
+{:.center}
+(/images/TikisAdventure.png){:height="300px"}
+(/images/TikisAdventureGame.png){:height="300px"}
+
+This is a quick game that I built for Theo using the [PICO-8 virtual
+game console](https://www.lexaloffle.com/pico-8.php). PICO-8 lets you
+build simple, 8-bit games with a limited palette, sound effects,
+low-res graphics, and simple controls. =
+
+[Play Tiki's Adventure here!](/tiki/tiki.html)
+
+
 # Mechanical keyboard with laser-cut case
 
 {:.center}
