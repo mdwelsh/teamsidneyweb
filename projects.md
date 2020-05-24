@@ -6,8 +6,8 @@ Check out some of Team Sidney Enterprises' projects below.
 # Tiki's Adventure
 
 {:.center}
-(/images/TikisAdventure.png){:height="300px"}
-(/images/TikisAdventureGame.png){:height="300px"}
+![Tiki's Adventure home screen](/images/TikisAdventure.png){:height="300px"}
+![Tiki's Adventure game](/images/TikisAdventureGame.png){:height="300px"}
 
 This is a quick game that I built for Theo using the [PICO-8 virtual
 game console](https://www.lexaloffle.com/pico-8.php). PICO-8 lets you
