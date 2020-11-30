@@ -7,15 +7,15 @@ and more ideas than free time to work on them.
 
 ![Picture of Sidney soldering](/images/sidney-workshop.jpg){:height="250px"}
 
-Sidney is a student at West Woodland Elementary school who likes chemistry,
+Sidney is 6th grader in Seatle who likes chemistry,
 electronics, hacking, and laser cutters.
 
 ## About Matt
 
 ![Picture of Matt](/images/mdw.jpg){:height="250px"}
 
-[Matt](https://www.mdw.la/) works at [Xnor.ai](https://xnor.ai/) in Seattle, WA,
-an early-stage AI startup developing machine learning software for embedded systems.
+[Matt](https://www.mdw.la/) works at [Octoml.ai](https://octoml.ai/) in Seattle, WA,
+an early-stage AI startup developing compilers for machine learning models.
 He enjoys riding bikes, drinking beer, and programming computers.
 
 ## Contact
