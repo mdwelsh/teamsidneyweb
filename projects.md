@@ -3,6 +3,17 @@ title: Our projects
 ---
 Check out some of Team Sidney Enterprises' projects below.
 
+# Mercator - A Spherical Persistence-of-Vision Display
+
+{:.center}
+[![Mercator](/images/mercator.jpg){:height="300px"}](/images/mercator.jpg)
+
+Mercator is a spherical persistence-of-vision display created with a spinning
+ring of DotStar LEDs, controlled via an ESP32 dev board.
+
+* [Blog post](https://mdwdotla.medium.com/mercator-an-esp32-based-spherical-persistence-of-vision-display-a4beff4f826e)
+* [Source code and hardware designs](https://github.com/mdwelsh/mercator)
+
 # Tiki's Adventure
 
 {:.center}
