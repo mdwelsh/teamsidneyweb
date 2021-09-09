@@ -7,7 +7,7 @@ and more ideas than free time to work on them.
 
 ![Picture of Sidney soldering](/images/sidney-workshop.jpg){:height="250px"}
 
-Sidney is 6th grader in Seatle who likes chemistry,
+Sidney is 7th grader in Seattle who likes chemistry,
 electronics, hacking, and laser cutters.
 
 ## About Matt
